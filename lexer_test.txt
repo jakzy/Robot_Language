@@ -1,0 +1,1 @@
+NUMERIC arr [10]

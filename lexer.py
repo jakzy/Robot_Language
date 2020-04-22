@@ -1,4 +1,3 @@
-# coding=utf8
 import sys
 import ply.lex as lex
 
@@ -31,7 +30,8 @@ reserved = {
 }
 
 
-class Lexer(object):
+class lexer(object):
+
     def __init__(self):
         self.lexer = lex.lex(module=self)
 
@@ -40,7 +40,6 @@ class Lexer(object):
               'SLASH', 'CARET',
               'DOUBLE_QUOTE',
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
-              #'R_BRACKET', 'L_BRACKET',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
               'COMMA', 'DOT', 'NEWLINE'] + list(reserved.values())
@@ -56,11 +55,50 @@ class Lexer(object):
     t_GREATER = r'\>'
     t_EQ = r'\?'
     t_NOTEQ = r'\!'
-    #t_R_BRACKET=r'\)'
-    #t_L_BRACKET=r'\('
     t_R_QBRACKET = r'\]'
     t_L_QBRACKET = r'\['
-    t_R_FBRACKET=r'\}'
-    t_L_FBRACKET=r'\{'
+    t_R_FBRACKET = r'\}'
+    t_L_FBRACKET = r'\{'
     t_COMMA = r'\,'
     t_DOT = r'\.'
+
+    def t_VARIABLE(self, t):
+        r'[a-zA-Z_][a-zA-Z_0-9]*'
+        t.type = reserved.get(t.value, 'VARIABLE')
+        return t
+
+    def t_DECIMAL(self, t):
+        r'd+'
+        t.value = int(t.value)
+        return t
+
+    def t_NEWLINE(self, t):
+        r'\n+'
+        t.lexer.lineno += len(t.value)
+        return t
+
+    def t_error(self, t):
+        sys.stderr.write(f'Illegal character: {t.value[0]} at line {t.lexer.lineno}\n')
+        t.lexer.skip(1)
+
+    t_ignore = ' \t'
+
+    def input(self, info):
+        return self.lexer.input(info)
+
+    def token(self):
+        return self.lexer.token()
+
+
+if __name__ == '__main__':
+    f = open(r'lexer_test.txt')
+    data = f.read()
+    f.close()
+    lexer = lexer()
+    lexer.input(data)
+    while True:
+        token = lexer.token()
+        if token is None:
+            break
+        else:
+            print(token)
