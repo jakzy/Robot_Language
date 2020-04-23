@@ -36,13 +36,13 @@ class lexer(object):
         self.lexer = lex.lex(module=self)
 
     tokens = ['DECIMAL',  'VARIABLE',
-              'ASSIGNMENT', 'PLUS', 'MINUS', 'STAR',
-              'SLASH', 'CARET',
+              'ASSIGNMENT', 'PLUS', 'MINUS',
+              'STAR', 'SLASH', 'CARET',
               'DOUBLE_QUOTE',
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
-              'COMMA', 'DOT', 'NEWLINE'] + list(reserved.values())
+              'AMPERSAND', 'COMMA', 'DOT', 'NEWLINE'] + list(reserved.values())
 
     t_ASSIGNMENT = r'\='
     t_PLUS = r'\+'
@@ -59,6 +59,7 @@ class lexer(object):
     t_L_QBRACKET = r'\['
     t_R_FBRACKET = r'\}'
     t_L_FBRACKET = r'\{'
+    t_AMPERSAND = r'\&'
     t_COMMA = r'\,'
     t_DOT = r'\.'
 
@@ -66,9 +67,13 @@ class lexer(object):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
         t.type = reserved.get(t.value, 'VARIABLE')
         return t
+    #def t_LINE(self, t):
+    #    r'.+'
+    #   t.type = t.value
+    #  return t
 
     def t_DECIMAL(self, t):
-        r'd+'
+        r'\d+'
         t.value = int(t.value)
         return t
 
@@ -101,4 +106,5 @@ if __name__ == '__main__':
         if token is None:
             break
         else:
-            print(token)
+            #print(token)
+            print(f"Line[{token.lineno}]: position[{token.lexpos}]: type = '{token.type}'\tvalue = '{token.value}'")

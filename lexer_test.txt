@@ -1,1 +1,64 @@
-NUMERIC arr [10]
+LOGIC res
+NUMERIC a
+NUMERIC arr[10]
+STRING msg [5]
+
+RECORD MyType
+DATA index NUMERIC, name STRING, taken LOGIC
+CONVERSION TO NUMERIC MyTypeToNUMERIC
+
+NUMERIC choice [3]
+new_msgs = msg[choice]
+
+MyType ex
+ex[index]
+
+a = 5
+msgs[3] = "Hi I am an example"
+a = b = 7
+
+BLOCK
+		NUMERIC a = 5
+		a = 2*a +4^2
+UNBLOCK
+
+NUMERIC a = 4
+LOGIC flag = a<5
+{flag} BLOCK
+		a = a^2/3 - 5
+		flag = FALSE
+UNBLOCK
+a  = -2
+{a?5} BLOCK
+		a = a +1
+		b = b + b^2
+UNBLOCK
+
+	PROC func1 [NUMERIC  a]
+	BLOCK
+		a = 2*a +4^2
+	UNBLOCK
+PROC func2 [NUMERIC  a &, LOGIC flag]
+	BLOCK
+		{flag} BLOCK
+			a = a^2/3 - 5
+			flag = FALSE
+		UNBLOCK
+	UNBLOCK
+PROC MyTypeToNUMERIC [MyType from, NUMERIC to]
+	BLOCK
+		NUMERIC res = from[index]
+		to = res
+	UNBLOCK
+MyTypeToNUMERIC data, id
+
+MOVEUP[PINGUP[1]]
+a = MOVEDOWN[a]
+MOVERIGHT[PINGRIGHT[UNDEF]]
+MOVELEFT[-3]
+
+a = PINGDOWN[0]
+PINGLEFT[]
+
+STRING pass[4] = VISION
+VOICE 
