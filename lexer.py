@@ -42,7 +42,7 @@ class lexer(object):
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
-              'AMPERSAND', 'COMMA', 'DOT', 'NEWLINE'] + list(reserved.values())
+              'AMPERSAND', 'COMMA', 'DOT','TEXT', 'NEWLINE'] + list(reserved.values())
 
     t_ASSIGNMENT = r'\='
     t_PLUS = r'\+'
@@ -67,10 +67,10 @@ class lexer(object):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
         t.type = reserved.get(t.value, 'VARIABLE')
         return t
-    #def t_LINE(self, t):
-    #    r'.+'
-    #   t.type = t.value
-    #  return t
+
+    def t_TEXT(self, t):
+        r'((?<=")((^")+(?=")))'
+        return t
 
     def t_DECIMAL(self, t):
         r'\d+'
@@ -96,7 +96,8 @@ class lexer(object):
 
 
 if __name__ == '__main__':
-    f = open(r'lexer_test.txt')
+    # = open(r'lexer_test.txt')
+    f = open(r'tiny_test.txt')
     data = f.read()
     f.close()
     lexer = lexer()

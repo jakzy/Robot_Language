@@ -59,6 +59,6 @@ MOVELEFT[-3]
 
 a = PINGDOWN[0]
 PINGLEFT[]
-
-STRING pass[4] = VISION
-VOICE 
+STRING pass[4]
+VISION[pass]
+VOICE[pass[0]]
