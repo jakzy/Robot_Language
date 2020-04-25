@@ -96,8 +96,9 @@ class lexer(object):
 
 
 if __name__ == '__main__':
-    # = open(r'lexer_test.txt')
-    f = open(r'tiny_test.txt')
+    #f = open(r'lexer_test.txt')
+    #f = open(r'tiny_test.txt')
+    f=open(r'bubble_sort.txt')
     data = f.read()
     f.close()
     lexer = lexer()

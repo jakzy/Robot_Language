@@ -1,0 +1,35 @@
+PROC SWAP [NUMERIC fst &, NUMERIC scd & ]
+BLOCK
+    NUMERIC buf = fst
+    fst = scd
+    scd = buf
+UNBLOCK
+NUMERIC arr[10]
+NUMERIC n = 10
+arr[0] = 1
+arr[1] = 6
+arr[2] = 3
+arr[3] = 0
+arr[4] = 4
+arr[5] = 7
+arr[6] = 9
+arr[7] = 2
+arr[8] = 8
+arr[9] = 5
+NUMERIC i = 0
+LOGIC work = i < n
+{work} BLOCK
+    NUMERIC j = 1
+    LOGIC swap = FALSE
+    {j < n-i-1} BLOCK
+        LOGIC check = arr[j] > arr[j+1]
+        {check} BLOCK
+            SWAP [arr[j], arr[j+1]]
+            swap = TRUE
+            check = FALSE
+        UNBLOCK
+    UNBLOCK
+    i = i + 1
+    work = i < n
+    work = work * swap
+UNBLOCK
