@@ -30,7 +30,7 @@ reserved = {
 }
 
 
-class lexer(object):
+class Lexer(object):
 
     def __init__(self):
         self.lexer = lex.lex(module=self)
@@ -50,7 +50,7 @@ class lexer(object):
     t_STAR = r'\*'
     t_SLASH = r'\/'
     t_CARET = r'\^'
-    t_DOUBLE_QUOTE = r'\"'
+   # t_DOUBLE_QUOTE = r'\"'
     t_LESS = r'\<'
     t_GREATER = r'\>'
     t_EQ = r'\?'
@@ -69,7 +69,8 @@ class lexer(object):
         return t
 
     def t_TEXT(self, t):
-        r'((?<=")((^")+(?=")))'
+        r'".*?"'
+        t.value = t.value[1:len(t.value)-1]
         return t
 
     def t_DECIMAL(self, t):
@@ -96,17 +97,16 @@ class lexer(object):
 
 
 if __name__ == '__main__':
-    #f = open(r'lexer_test.txt')
+    f = open(r'lexer_test.txt')
     #f = open(r'tiny_test.txt')
-    f=open(r'bubble_sort.txt')
+    #f = open(r'bubble_sort.txt')
     data = f.read()
     f.close()
-    lexer = lexer()
+    lexer = Lexer()
     lexer.input(data)
     while True:
         token = lexer.token()
         if token is None:
             break
         else:
-            #print(token)
             print(f"Line[{token.lineno}]: position[{token.lexpos}]: type = '{token.type}'\tvalue = '{token.value}'")
