@@ -38,7 +38,6 @@ class Lexer(object):
     tokens = ['DECIMAL',  'VARIABLE',
               'ASSIGNMENT', 'PLUS', 'MINUS',
               'STAR', 'SLASH', 'CARET',
-              'DOUBLE_QUOTE',
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
@@ -50,7 +49,6 @@ class Lexer(object):
     t_STAR = r'\*'
     t_SLASH = r'\/'
     t_CARET = r'\^'
-   # t_DOUBLE_QUOTE = r'\"'
     t_LESS = r'\<'
     t_GREATER = r'\>'
     t_EQ = r'\?'

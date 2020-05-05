@@ -3,62 +3,57 @@ NUMERIC a
 NUMERIC arr[10]
 STRING msg [5]
 
-RECORD MyType
-DATA index NUMERIC, name STRING, taken LOGIC
-CONVERSION TO NUMERIC MyTypeToNUMERIC
-
+RECORD MyType DATA [NUMERIC index, STRING name, LOGIC taken] CONVERSION TO NUMERIC MyTypeToNUMERIC
 NUMERIC choice [3]
 new_msgs = msg[choice]
 
 MyType ex
-ex[index]
+ex[index] = 6
 
 a = 5
 msgs[3] = "Hi I am an example"
-a = b = 7
+b = 7
 
-BLOCK
-		NUMERIC a = 5
+{TRUE}BLOCK NUMERIC a
+        a = 5
 		a = 2*a +4^2
 UNBLOCK
 
-NUMERIC a = 4
-LOGIC flag = a<5
-{flag} BLOCK
-		a = a^2/3 - 5
+NUMERIC a
+a = 4
+LOGIC flag
+flag = a<5
+{flag} BLOCK a = a^2/3 - 5
 		flag = FALSE
 UNBLOCK
 a  = -2
-{a?5} BLOCK
-		a = a +1
+{a?5} BLOCK a = a +1
 		b = b + b^2
 UNBLOCK
-
-	PROC func1 [NUMERIC  a]
-	BLOCK
-		a = 2*a +4^2
+	PROC func1 [NUMERIC  a] BLOCK a = 2*a +4^2
 	UNBLOCK
-PROC func2 [NUMERIC  a &, LOGIC flag]
-	BLOCK
+PROC func2 [NUMERIC  a &, LOGIC flag] BLOCK
 		{flag} BLOCK
 			a = a^2/3 - 5
 			flag = FALSE
 		UNBLOCK
 	UNBLOCK
-PROC MyTypeToNUMERIC [MyType from, NUMERIC to]
-	BLOCK
-		NUMERIC res = from[index]
+PROC MyTypeToNUMERIC [MyType from, NUMERIC to] BLOCK
+		NUMERIC res
+		res = from[index]
 		to = res
 	UNBLOCK
-MyTypeToNUMERIC data, id
+MyTypeToNUMERIC[data, id]
 
-MOVEUP[PINGUP[1]]
-a = MOVEDOWN[a]
-MOVERIGHT[PINGRIGHT[UNDEF]]
-MOVELEFT[-3]
+a = 0
+PINGUP[a]
+MOVEUP[a]
+MOVEDOWN[a]
+MOVERIGHT[a]
+MOVELEFT[a]
 
-a = PINGDOWN[0]
-PINGLEFT[]
+PINGDOWN[a]
+PINGLEFT[a]
 STRING pass[4]
 VISION[pass]
 VOICE[pass[0]]
