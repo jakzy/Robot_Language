@@ -139,8 +139,8 @@ class Parser(object):
 
     @staticmethod
     def p_variables(p):
-        """variables : variables COMMA variable
-                    | variable"""
+        """variables :  expression
+                     |  expression COMMA variables """
         if len(p) == 2:
             p[0] = Node(t='variables', ch=p[1])
         else:
@@ -175,8 +175,8 @@ class Parser(object):
                               | part_expression GREATER part_expression   %prec GREATER
                               | part_expression LESS    part_expression   %prec LESS   
                               | part_expression EQ      part_expression   %prec EQ     
-                              | part_expression NOTEQ   part_expression   %prec NOTEQ  
-                              | MINUS expression"""
+                              | part_expression NOTEQ   part_expression   %prec NOTEQ
+                              | MINUS expression %prec UMINUS"""
         if len(p) == 3:
             p[0] = Node(t='unary_expression', val=p[1], ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
         else:
@@ -244,26 +244,37 @@ class Parser(object):
         p[0] = p[1]
 
     @staticmethod
-    def p_statement_error(p):
-        """statement : errors NEWLINE"""
-        sys.stderr.write(f'Syntax error: "{p[1][0].value}" at {p[1][0].lineno}:{p[1][0].lexpos}\n')
-
-    @staticmethod
     def p_statement_error_no_nl(p):
-        """statement : errors"""
-        sys.stderr.write(f'Syntax error: "{p[1][0].value}" at {p[1][0].lineno}:{p[1][0].lexpos}\n')
+        """statement : error"""
+        p[0] = Node('error', val="Wrong syntax", no=p.lineno(1), pos=p.lexpos(1))
+        sys.stderr.write(f'>>> Wrong syntax. Check a NL\n')
 
     @staticmethod
-    def p_errors(p):
-        """errors : errors error
-        | error"""
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + p[2]
+    def p_assignment_err(p):
+        """assignment : variable ASSIGNMENT error"""
+        p[0] = Node('error', val="Wrong assignment", no=p.lineno(1), pos=p.lexpos(1))
+        sys.stderr.write(f'>>> Wrong assignment\n')
+
+    @staticmethod
+    def p_command_err(p):
+        """command : MOVEUP      L_QBRACKET error R_QBRACKET
+                   | MOVEDOWN    L_QBRACKET error R_QBRACKET
+                   | MOVERIGHT   L_QBRACKET error R_QBRACKET
+                   | MOVELEFT    L_QBRACKET error R_QBRACKET
+                   | PINGUP      L_QBRACKET error R_QBRACKET
+                   | PINGDOWN    L_QBRACKET error R_QBRACKET
+                   | PINGRIGHT   L_QBRACKET error R_QBRACKET
+                   | PINGLEFT    L_QBRACKET error R_QBRACKET
+                   | VISION      L_QBRACKET error R_QBRACKET
+                   | VOICE       L_QBRACKET error R_QBRACKET"""
+        p[0] = Node('error', val="Command call error. Check the values in brackets", no=p.lineno(1), pos=p.lexpos(1))
+        sys.stderr.write(f'>>> Command call error\n')
 
     def p_error(self, p):
-        print(f'Syntax error at {p}')
+        try:
+            sys.stderr.write(f'Syntax error at {p.lineno} line\n')
+        except:
+            sys.stderr.write(f'Syntax error\n')
         self.correct = False
 
     def get_f(self):
