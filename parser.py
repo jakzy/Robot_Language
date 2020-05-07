@@ -9,7 +9,9 @@ from syntax_tree import Node
 
 
 class Parser(object):
+
     tokens = Lexer.tokens
+    precedence = Lexer.precedence
 
     def __init__(self):
         self.correct = True
@@ -58,7 +60,8 @@ class Parser(object):
 
     @staticmethod
     def p_assignment(p):
-        """assignment : variable ASSIGNMENT expression"""
+        """assignment : variable ASSIGNMENT expression
+                      | variable ASSIGNMENT assignment"""
         p[0] = Node(t='assignment', val=p[1], ch=p[3], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
@@ -77,28 +80,27 @@ class Parser(object):
                    | PINGRIGHT   L_QBRACKET variable R_QBRACKET
                    | PINGLEFT    L_QBRACKET variable R_QBRACKET
                    | VISION      L_QBRACKET variable R_QBRACKET
-                   | VOICE       L_QBRACKET variable R_QBRACKET"""
+                   | VOICE       L_QBRACKET expression R_QBRACKET"""
         p[0] = Node(t='command', val=p[1], ch=p[3], no=p.lineno(1), pos=p.lexpos(1))
 
     def p_procedure(self, p):
         """procedure : PROC VARIABLE L_QBRACKET parameters R_QBRACKET statements_group"""
-        self._procedures[p[2]] = Node(t='procedure', val=p[2],ch={'parameters': p[4], 'body': p[6]})
+        self._procedures[p[2]] = Node(t='procedure', val=p[2], ch={'parameters': p[4], 'body': p[6]})
         p[0] = Node(t='procedure_description', val=p[2], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_call(p):
         """call : VARIABLE L_QBRACKET variables R_QBRACKET"""
-        p[0] = Node(t='call', val=p[1], ch=p[3])
+        p[0] = Node(t='procedure_call', val=p[1], ch=p[3])
 
     def p_record(self, p):
         """record : RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET
                   | RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET conversions"""
         if len(p) == 8:
-            self._records[p[2]]=Node(t='record', ch={'parameters': p[5], 'conversions': p[7]})
+            self._records[p[2]] = Node(t='record',  val=p[2], ch={'parameters': p[5], 'conversions': p[7]})
         else:
-            self._records[p[2]]=Node(t='record', ch={'parameters': p[5], 'conversions': None})
-        p[0]=Node(t='record_description', val=p[2], no=p.lineno(1), pos=p.lexpos(1))
-
+            self._records[p[2]] = Node(t='record',  val=p[2], ch={'parameters': p[5], 'conversions': None})
+        p[0] = Node(t='record_description', val=p[2], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_conversions(p):
@@ -132,19 +134,12 @@ class Parser(object):
     def p_expression(p):
         """expression : variable
                       | const
-                      | text
-                      | complex_expression
-                      | call"""
+                      | complex_expression"""
         p[0] = p[1]
 
     @staticmethod
-    def p_text(p):
-        """text : TEXT"""
-        p[0] = Node(t='text', val = p[1])
-
-    @staticmethod
     def p_variables(p):
-        """variables : variable COMMA variables
+        """variables : variables COMMA variable
                     | variable"""
         if len(p) == 2:
             p[0] = Node(t='variables', ch=p[1])
@@ -166,47 +161,41 @@ class Parser(object):
                  | FALSE
                  | UNDEF
                  | DECIMAL
+                 | TEXT
                  """
         p[0] = Node(t='const', val=p[1])
 
     @staticmethod
     def p_complex_expression(p):
-        """complex_expression : expression sign expression
-                           | MINUS expression"""
+        """complex_expression : part_expression PLUS    part_expression   %prec PLUS   
+                              | part_expression MINUS   part_expression   %prec MINUS  
+                              | part_expression STAR    part_expression   %prec STAR   
+                              | part_expression SLASH   part_expression   %prec SLASH  
+                              | part_expression CARET   part_expression   %prec CARET  
+                              | part_expression GREATER part_expression   %prec GREATER
+                              | part_expression LESS    part_expression   %prec LESS   
+                              | part_expression EQ      part_expression   %prec EQ     
+                              | part_expression NOTEQ   part_expression   %prec NOTEQ  
+                              | MINUS expression"""
         if len(p) == 3:
             p[0] = Node(t='unary_expression', val=p[1], ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
         else:
             p[0] = Node(t='binary_expression', val=p[2], ch=[p[1], p[3]], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
-    def p_sign(p):
-        """sign : r_sign
-                 | l_sign
-                 | u_sign"""
-        p[0] = p[1]
+    def p_part_expression_right(p):
+        """part_expression : DOT expression"""
+        p[0] = Node(t='expression', val='right', ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
-    def p_r_sign(p):
-        """r_sign : u_sign DOT """
-        p[0] = p[1]
+    def p_part_expression_left(p):
+        """part_expression : expression DOT"""
+        p[0] = Node(t='expression', val='left', ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
-    def p_l_sign(p):
-        """l_sign : DOT u_sign  """
-        p[0] = p[2]
-
-    @staticmethod
-    def p_u_sign(p):
-        """u_sign : PLUS
-                    | MINUS
-                    | STAR
-                    | SLASH
-                    | CARET
-                    | GREATER
-                    | LESS
-                    | EQ
-                    | NOTEQ"""
-        p[0] = p[1]
+    def p_part_expression(p):
+        """part_expression : expression"""
+        p[0] = Node(t='expression', val=None, ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_parameters(p):
@@ -282,8 +271,8 @@ class Parser(object):
 
 
 if __name__ == '__main__':
-    #f = open("tiny_test.txt")
-    f = open(r'lexer_test.txt')
+    f = open("tiny_test.txt")
+    #f = open(r'lexer_test.txt')
     #f = open(r'bubble_sort.txt')
     text = f.read()
     f.close()

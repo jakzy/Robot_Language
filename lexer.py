@@ -41,7 +41,15 @@ class Lexer(object):
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
-              'AMPERSAND', 'COMMA', 'DOT','TEXT', 'NEWLINE'] + list(reserved.values())
+              'AMPERSAND', 'COMMA', 'DOT', 'TEXT', 'NEWLINE'] + list(reserved.values())
+
+    precedence = (
+        ('right', 'ASSIGNMENT'),
+        ('left', 'LESS', 'GREATER', 'EQ', 'NOTEQ'),
+        ('left', 'PLUS', 'MINUS'),
+        ('left', 'STAR', 'SLASH'),
+        ('right', 'CARET'),
+    )
 
     t_ASSIGNMENT = r'\='
     t_PLUS = r'\+'
