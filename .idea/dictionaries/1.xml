@@ -12,7 +12,9 @@
       <w>pingright</w>
       <w>pingup</w>
       <w>proc</w>
+      <w>procs</w>
       <w>qbracket</w>
+      <w>rbracket</w>
     </words>
   </dictionary>
 </component>

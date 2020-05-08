@@ -26,7 +26,7 @@ work = i < n
     swap = FALSE
     {j < n-i-1} BLOCK LOGIC check
     check = arr[j] > arr[j+1]
-        {check} BLOCK SWAP [arr[j], arr[j+1]]
+        {check} BLOCK SWAP (arr[j], arr[j+1])
             swap = TRUE
             check = FALSE
         UNBLOCK

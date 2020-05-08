@@ -39,6 +39,7 @@ class Lexer(object):
               'ASSIGNMENT', 'PLUS', 'MINUS',
               'STAR', 'SLASH', 'CARET',
               'LESS', 'GREATER', 'EQ', 'NOTEQ',
+              'R_RBRACKET', 'L_RBRACKET',
               'R_QBRACKET', 'L_QBRACKET',
               'R_FBRACKET', 'L_FBRACKET',
               'AMPERSAND', 'COMMA', 'DOT', 'TEXT', 'NEWLINE'] + list(reserved.values())
@@ -62,6 +63,8 @@ class Lexer(object):
     t_GREATER = r'\>'
     t_EQ = r'\?'
     t_NOTEQ = r'\!'
+    t_R_RBRACKET = r'\)'
+    t_L_RBRACKET = r'\('
     t_R_QBRACKET = r'\]'
     t_L_QBRACKET = r'\['
     t_R_FBRACKET = r'\}'
