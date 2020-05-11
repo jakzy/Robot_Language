@@ -5,7 +5,9 @@ from syntax_tree import Node
 
 # Item of symbol table
 class Variable:
-    def __init__(self, var_type='NUMERIC', var_value=None):
+    def __init__(self, var_type='UNDEF', var_value=None):
+        if var_value == "UNDEF":
+            var_value = None
         self.type = var_type
         if self.type == 'LOGIC':
             if var_value == "FALSE":
@@ -21,10 +23,93 @@ class Variable:
         return f'{self.type}, {self.value}'
 
 
+class UserConversion:
+    def __init__(self):
+        self.TO: Dict[str, Node] = dict()
+        self.FROM: Dict[str, Node] = dict()
+
+
+# Conversion of types
+class Conversion:
+    def __init__(self):
+        self.user_conversions: Dict[str, UserConversion] = dict()
+
+    def converse_(self, var, _type):
+        if _type == var.type:
+            return var
+        if _type == 'LOGIC':
+            if var.type == 'NUMERIC':
+                return self.num_to_logic(var)
+            if var.type == 'STRING':
+                return self.string_to_logic(var)
+        if _type == 'NUMERIC':
+            if var.type == 'LOGIC':
+                return self.logic_to_num(var)
+            if var.type == 'STRING':
+                return self.string_to_num(var)
+        if _type == 'STRING':
+            if var.type == 'LOGIC':
+                return self.logic_to_string(var)
+            if var.type == 'NUMERIC':
+                return self.num_to_string(var)
+        else:
+            print('LATER')
+
+    def add_converse(self, _type_from, _type_to, _func):
+        pass
+
+    @staticmethod
+    def logic_to_num(value):
+        if value.value == bool(True):
+            return Variable('NUMERIC', 1)
+        elif value.value == bool(False):
+            return Variable('NUMERIC', 0)
+        elif value.value == 'UNDEF':
+            return Variable('NUMERIC', 'UNDEF')
+        else:
+            sys.stderr.write(f'Illegal conversion\n')
+
+    @staticmethod
+    def num_to_logic(value):
+        if int(value.value) == 0:
+            return Variable('LOGIC', False)
+        elif isinstance(value.value, int):
+            return Variable('LOGIC', True)
+        elif value.value == 'UNDEF':
+            return Variable('LOGIC', 'UNDEF')
+        else:
+            sys.stderr.write(f'Illegal conversion\n')
+
+    @staticmethod
+    def string_to_logic(value):
+        if value.value.lower() == "true":
+            return Variable('LOGIC', bool(True))
+        elif value.value in ['UNDEF', None]:
+            return Variable('LOGIC', None)
+        else:
+            return Variable('LOGIC', bool(False))
+
+    @staticmethod
+    def logic_to_string(value):
+        return Variable('STRING', str(value.value))
+
+    @staticmethod
+    def string_to_num(value):
+        if len(value.value) == 1:
+            return Variable('NUMERIC', ord(value.value))
+        else:
+            return Variable('NUMERIC', 0)
+
+    @staticmethod
+    def num_to_string(value):
+        return Variable('STRING', str(value.value))
+
+
 class Interpreter:
 
-    def __init__(self, _parser=Parser()):
+    def __init__(self, _parser=Parser(), _converse=Conversion()):
         self.parser = _parser
+        self.converse = _converse
         self.sym_table = None
         self.scope = 0
         self.program = None
@@ -46,7 +131,7 @@ class Interpreter:
 
     @staticmethod
     def interpreter_tree(_tree):
-        print("Program tree:\n")
+        print("Program tree:")
         _tree.print()
         print("\n")
 
@@ -76,7 +161,6 @@ class Interpreter:
             else:
                 sys.stderr.write(f'Can\'t declare the variable: illegal type\n')
 
-
         # statements -> record
         elif node.type == 'record_description':
             if node.value in self.recs.keys():
@@ -86,7 +170,59 @@ class Interpreter:
             else:
                 self.recs[node.value] = self.parser.get_recs()[node.value]
 
-        # for declaration
+        # statements -> procedure
+        elif node.type == 'procedure_description':
+            if node.value in self.procs.keys():
+                sys.stderr.write(f'Can\'t redeclare the procedure\n')
+            elif (node.value in self.procs.keys()) or (node.value in self.sym_table[self.scope].keys()):
+                sys.stderr.write(f'Can\'t declare the procedure: name is taken\n')
+            else:
+                self.procs[node.value] = self.parser.get_proc()[node.value]
+
+        # statements -> assignment
+        elif node.type == 'assignment':
+            variable = node.value.value
+            if variable not in self.sym_table[self.scope].keys():
+                sys.stderr.write(f'Undeclared variable\n')
+            else:
+                _type = self.sym_table[self.scope][variable].type
+                expression = self.interpreter_node(node.child)
+                self.assign(_type, variable, expression)
+                #what s this?
+                self.sym_table[self.scope]['#result'] = expression
+                return expression
+
+        # EXPRESSION BLOCK
+
+        # expression -> const
+        elif node.type == 'const':
+            return self.const_val(node.value)
+
+    # for assign
+    def assign(self, _type, variable, expression: Variable):
+        if expression is None:
+            return
+        expression = self.converse.converse_(expression, self.sym_table[self.scope][variable].type)
+        if variable not in self.sym_table[self.scope].keys():
+            sys.stderr.write(f'Undeclared variable\n')
+        if _type == expression.type:
+            self.sym_table[self.scope][variable] = expression
+        elif expression.type == 'UNDEF':
+            self.sym_table[self.scope][variable].value = None
+
+    # for const
+    @staticmethod
+    def const_val(value):
+        if (str(value)).isdigit():
+            return Variable('NUMERIC', int(value))
+        elif value in ['TRUE', 'FALSE', True, False]:
+            return Variable('LOGIC', value)
+        elif value in ['UNDEF', None]:
+            return Variable('UNDEF', None)
+        else:
+            return Variable('STRING', value)
+
+    # for declaration
 
     def declare_variable(self, node, _type):
         if node.type == 'variable':
@@ -102,6 +238,7 @@ class Interpreter:
         if (_type in ['NUMERIC', 'LOGIC', 'STRING']) or (_type in self.recs.keys()):
             self.sym_table[self.scope][_value] = Variable(_type, None)
 
+
 if __name__ == '__main__':
     f = open("tiny_test.txt")
     #f = open(r'lexer_test.txt')
@@ -115,4 +252,11 @@ if __name__ == '__main__':
             if keys == "#result":
                 continue
             if isinstance(values, Variable):
-                print(values.type, keys, '=', values.value)
+                if values.type == 'STRING':
+                    print(values.type, keys, '= \'', values.value,'\'')
+                else:
+                    print(values.type, keys, '=', values.value)
+    print('Records:')
+    print(interpr.recs)
+    print('Procedures:')
+    print(interpr.procs)
