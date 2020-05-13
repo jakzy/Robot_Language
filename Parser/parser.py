@@ -202,17 +202,17 @@ class Parser(object):
     @staticmethod
     def p_part_expression_right(p):
         """part_expression : DOT expression"""
-        p[0]=Node(t='expression', val='right', ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
+        p[0]=Node(t='part_expression', val='right', ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_part_expression_left(p):
         """part_expression : expression DOT"""
-        p[0]=Node(t='expression', val='left', ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
+        p[0]=Node(t='part_expression', val='left', ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_part_expression(p):
         """part_expression : expression"""
-        p[0]=Node(t='expression', val=None, ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
+        p[0]=Node(t='part_expression', val=None, ch=p[1], no=p.lineno(1), pos=p.lexpos(1))
 
     @staticmethod
     def p_parameters(p):
