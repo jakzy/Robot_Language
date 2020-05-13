@@ -1,0 +1,64 @@
+LOGIC test_0_OR_0
+LOGIC test_0_OR_1
+LOGIC test_0_OR_X
+LOGIC test_1_OR_X
+LOGIC test_1_OR_1
+LOGIC test_X_OR_X
+test_0_OR_0  = FALSE + FALSE
+test_0_OR_1  = FALSE + TRUE
+test_0_OR_X  = FALSE + UNDEF
+test_1_OR_X  = TRUE  + UNDEF
+test_1_OR_1  = TRUE  + TRUE
+test_X_OR_X  = UNDEF + UNDEF
+
+LOGIC test_0_XOR_0
+LOGIC test_0_XOR_1
+LOGIC test_0_XOR_X
+LOGIC test_1_XOR_X
+LOGIC test_1_XOR_1
+LOGIC test_X_XOR_X
+test_0_XOR_0  = FALSE - FALSE
+test_0_XOR_1  = FALSE - TRUE
+test_0_XOR_X  = FALSE - UNDEF
+test_1_XOR_X  = TRUE  - UNDEF
+test_1_XOR_1  = TRUE  - TRUE
+test_X_XOR_X  = UNDEF - UNDEF
+
+LOGIC test_0_AND_0
+LOGIC test_0_AND_1
+LOGIC test_0_AND_X
+LOGIC test_1_AND_X
+LOGIC test_1_AND_1
+LOGIC test_X_AND_X
+test_0_AND_0  = FALSE * FALSE
+test_0_AND_1  = FALSE * TRUE
+test_0_AND_X  = FALSE * UNDEF
+test_1_AND_X  = TRUE  * UNDEF
+test_1_AND_1  = TRUE  * TRUE
+test_X_AND_X  = UNDEF * UNDEF
+
+LOGIC test_0_NAND_0
+LOGIC test_0_NAND_1
+LOGIC test_0_NAND_X
+LOGIC test_1_NAND_X
+LOGIC test_1_NAND_1
+LOGIC test_X_NAND_X
+test_0_NAND_0  = FALSE / FALSE
+test_0_NAND_1  = FALSE / TRUE
+test_0_NAND_X  = FALSE / UNDEF
+test_1_NAND_X  = TRUE  / UNDEF
+test_1_NAND_1  = TRUE  / TRUE
+test_X_NAND_X  = UNDEF / UNDEF
+
+LOGIC test_0_NOR_0
+LOGIC test_0_NOR_1
+LOGIC test_0_NOR_X
+LOGIC test_1_NOR_X
+LOGIC test_1_NOR_1
+LOGIC test_X_NOR_X
+test_0_NOR_0  = FALSE ^ FALSE
+test_0_NOR_1  = FALSE ^ TRUE
+test_0_NOR_X  = FALSE ^ UNDEF
+test_1_NOR_X  = TRUE  ^ UNDEF
+test_1_NOR_1  = TRUE  ^ TRUE
+test_X_NOR_X  = UNDEF ^ UNDEF

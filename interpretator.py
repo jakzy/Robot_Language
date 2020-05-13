@@ -2,6 +2,7 @@ import sys
 from Parser.parser import Parser
 from typing import List, Dict, Optional
 from syntax_tree import Node
+import copy
 
 # Item of symbol table
 class Variable:
@@ -121,6 +122,17 @@ class Interpreter:
         self.procs: Dict[str, Node] = dict()
         self.recs: Dict[str, Node] = dict()
 
+    def get_value(self, node):
+        print(node.type)
+        if node.type == 'variable':
+            if node.value in self.sym_table[self.scope].keys():
+                return self.const_val(self.sym_table[self.scope][node.value].value)
+            else:
+                sys.stderr.write(f'Undeclared variable\n')
+        else:
+            sys.stderr.write(f'Illegal value\n')
+        return Variable()
+
     def interpreter(self,  program=None):
         self.program = program
         self.sym_table = [dict()]
@@ -191,12 +203,10 @@ class Interpreter:
                 if node.child.type == 'const':
                     expression = self.interpreter_node(node.child)
                 elif (node.child.type == 'variable') or (node.child.type == 'assignment'):
-                    expression = Variable(self.sym_table[self.scope][variable].type, self.sym_table[self.scope][node.child.value].value)
+                    expression = self.interpreter_node(node.child)
                 elif node.child.type == 'binary_expression':
                     expression = self.interpreter_node(node.child)
                 self.assign(_type, variable, expression)
-                #what s this?
-                self.sym_table[self.scope]['#result'] = expression
                 return expression
 
         # EXPRESSION BLOCK
@@ -205,46 +215,53 @@ class Interpreter:
         elif node.type == 'binary_expression':
             exp1 = self.interpreter_node(node.child[0])
             exp2 = self.interpreter_node(node.child[1])
-            if node.child[0].type == 'variable':
-                exp1 = Variable((self.sym_table[self.scope][exp1.value]).type, (self.sym_table[self.scope][exp1.value]).value)
-            else:
-                exp1 = self.interpreter_node(node.child[0])
-            if node.child[1].type == 'variable':
-                exp2 = Variable((self.sym_table[self.scope][exp2.value]).type, (self.sym_table[self.scope][exp2.value]).value)
-            else:
-                exp2 = self.interpreter_node(node.child[1])
+            print()
+            print('exp1: ' + str(exp1))
+            print('exp2: ' + str(exp2))
             if node.value == '+':
-                return self.bin_plus(exp1, exp2)
-        #   elif node.value == '-':
-        #       return self.bin_minus(exp1, exp2)
-        #   if node.value == '*':
-        #       return self.bin_star(exp1, exp2)
-        #   elif node.value == '/':
-        #       return self.bin_slash(exp1, exp2)
-        #   if node.value == '^':
-        #       return self.bin_caret(exp1, exp2)
-        #   elif node.value == '>':
-        #       return self.bin_greater(exp1, exp2)
-        #   elif node.value == '<':
-        #       return self.bin_less(exp1, exp2)
-        #   elif node.value == '?':
-        #       return self.bin_equal(exp1, exp2)
-        #   elif node.value == '!':
-        #       return self.bin_not_equal(exp1, exp2)
+                result = self.bin_plus(exp1, exp2)
+            elif node.value == '-':
+                result = self.bin_minus(exp1, exp2)
+            elif node.value == '*':
+                result = self.bin_star(exp1, exp2)
+            elif node.value == '/':
+                result = self.bin_slash(exp1, exp2)
+            elif node.value == '^':
+                result = self.bin_caret(exp1, exp2)
+        #    elif node.value == '>':
+        #        result = self.bin_greater(exp1, exp2)
+        #    elif node.value == '<':
+        #        result = self.bin_less(exp1, exp2)
+        #    elif node.value == '?':
+        #        result = self.bin_equal(exp1, exp2)
+        #    elif node.value == '!':
+        #        result = self.bin_not_equal(exp1, exp2)
+            if exp1.right:
+                result.right = True
+            if exp2.left:
+                result.left = True
+            return result
 
         # binary_expression -> part_expression
         if node.type == 'part_expression':
             exp = self.interpreter_node(node.child)
-            if node.value:
-                if node.value == "right":
-                    exp.right = True
-                elif node.value == "left":
-                    exp.left = True
+            if exp:
+                if node.value:
+                    if node.value == "right":
+                        exp.right = True
+                        print('right up')
+                    elif node.value == "left":
+                        exp.left = True
+                        print('left up')
             return exp
 
         # expression -> const
         elif node.type == 'const':
             return self.const_val(node.value)
+
+        # expression -> variable
+        elif node.type == 'variable':
+            return self.get_value(node)
 
     # for assign
     def assign(self, _type, variable, expression: Variable):
@@ -253,20 +270,38 @@ class Interpreter:
         expression = self.converse.converse_(expression, self.sym_table[self.scope][variable].type)
         if variable not in self.sym_table[self.scope].keys():
             sys.stderr.write(f'Undeclared variable\n')
-        if _type == expression.type:
-            self.sym_table[self.scope][variable] = expression
-        elif expression.type == 'UNDEF':
+        if expression:
+            if _type == expression.type:
+                self.sym_table[self.scope][variable] = expression
+            elif expression.type == 'UNDEF':
+                self.sym_table[self.scope][variable].value = None
+        else:
             self.sym_table[self.scope][variable].value = None
 
-        # binary plus
+        # binary plus -- ADDITION or OR
     def bin_plus(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type = _val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type = _val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1 = _val1.value
+        x2 = _val2.value
         if _val1.type == _val2.type:
             if _val1.type == "NUMERIC":
-                return Variable('NUMERIC', _val1.value + _val2.value)
+                return Variable('NUMERIC', x1 + x2)
             elif _val1.type == "LOGIC":
-                return Variable('LOGIC', bool(_val1.value) or bool(_val2.value))
+                if (x1 != None) and (x2 != None):
+                    return Variable('LOGIC', bool(x1) or bool(x2))
+                else:
+                    if x1 or x2:
+                        return Variable('LOGIC', True)
+                    else:
+                        return Variable('LOGIC', None)
+
             elif _val1.type == "STRING":
                 no_error = False
                 sys.stderr.write(f'Illegal operation: type STRING\n')
@@ -287,12 +322,234 @@ class Interpreter:
                 if res_type == "NUMERIC":
                     return Variable('NUMERIC', self.converse.converse_(_val1, 'NUMERIC').value + self.converse.converse_(_val2, 'NUMERIC').value)
                 elif res_type == "LOGIC":
-                    return Variable('LOGIC', bool(self.converse.converse_(_val1, 'LOGIC').value) or bool(self.converse.converse_(_val2, 'LOGIC').value))
+                    x1 = bool(self.converse.converse_(_val1, 'LOGIC').value)
+                    x2 = bool(self.converse.converse_(_val2, 'LOGIC').value)
+                    if (x1 != None) and (x2 != None):
+                        return Variable('LOGIC', bool(x1) or bool(x2))
+                    else:
+                        if x1 or x2:
+                            return Variable('LOGIC', True)
+                        else:
+                            return Variable('LOGIC', None)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
+        # binary minus -- SUBTRACTION or XOR
+    def bin_minus(self, _val1, _val2):
+        no_error=True
+        res_type='UNDEF'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            if _val1.type == "NUMERIC":
+                return Variable('NUMERIC', x1 - x2)
+            elif _val1.type == "LOGIC":
+                if (x1 != None) and (x2 != None):
+                    return Variable('LOGIC', (bool(x1) and not bool(x2)) or (bool(x2) and not bool(x1)))
+                else:
+                    return Variable('LOGIC', None)
+            elif _val1.type == "STRING":
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type STRING\n')
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                if res_type == "NUMERIC":
+                    return Variable('NUMERIC',
+                                    self.converse.converse_(_val1, 'NUMERIC').value + self.converse.converse_(_val2,
+                                                                                                              'NUMERIC').value)
+                elif res_type == "LOGIC":
+                    x1=bool(self.converse.converse_(_val1, 'LOGIC').value)
+                    x2=bool(self.converse.converse_(_val2, 'LOGIC').value)
+                    if (x1 != None) and (x2 != None):
+                        return Variable('LOGIC', (bool(x1) and not bool(x2)) or (bool(x2) and not bool(x1)))
+                    else:
+                        return Variable('LOGIC', None)
+                elif res_type == "STRING":
+                    sys.stderr.write(f'Illegal operation: type STRING\n')
+        # binary star -- MULTIPLICATION or AND
+    def bin_star(self, _val1, _val2):
+        no_error = True
+        res_type = 'UNDEF'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type = _val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type = _val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1 = _val1.value
+        x2 = _val2.value
+        if _val1.type == _val2.type:
+            if _val1.type == "NUMERIC":
+                return Variable('NUMERIC', x1 * x2)
+            elif _val1.type == "LOGIC":
+                if (x1 != None) and (x2 != None):
+                    return Variable('LOGIC', bool(x1) or bool(x2))
+                else:
+                    if (not x1 or not x2) or (x1 == x2):
+                        return Variable('LOGIC', None)
+                    else:
+                        return Variable('LOGIC', False)
 
+            elif _val1.type == "STRING":
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type STRING\n')
+        else:
+            if _val1.left and _val2.right:
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type = _val1.type
+                _val1.left = False
+            elif _val2.right:
+                res_type = _val2.type
+                _val2.right = False
+            else:
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                if res_type == "NUMERIC":
+                    return Variable('NUMERIC', self.converse.converse_(_val1, 'NUMERIC').value + self.converse.converse_(_val2, 'NUMERIC').value)
+                elif res_type == "LOGIC":
+                    x1 = bool(self.converse.converse_(_val1, 'LOGIC').value)
+                    x2 = bool(self.converse.converse_(_val2, 'LOGIC').value)
+                    if (x1 != None) and (x2 != None):
+                        return Variable('LOGIC', bool(x1) or bool(x2))
+                    else:
+                        if (not x1 or not x2) or (x1 == x2):
+                            return Variable('LOGIC', None)
+                        else:
+                            return Variable('LOGIC', False)
+                elif res_type == "STRING":
+                    sys.stderr.write(f'Illegal operation: type STRING\n')
+        # binary slash -- DIVISION or NAND (Sheffer stroke)
+    def bin_slash(self, _val1, _val2):
+        no_error = True
+        res_type = 'UNDEF'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type = _val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type = _val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1 = _val1.value
+        x2 = _val2.value
+        if _val1.type == _val2.type:
+            if _val1.type == "NUMERIC":
+                return Variable('NUMERIC', x1 / x2)
+            elif _val1.type == "LOGIC":
+                if (x1 != None) and (x2 != None):
+                    return Variable('LOGIC', not(bool(x1) and bool(x2)))
+                else:
+                    if (x1 or x2) or (x1 == x2):
+                        return Variable('LOGIC', None)
+                    else:
+                        return Variable('LOGIC', True)
 
+            elif _val1.type == "STRING":
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type STRING\n')
+        else:
+            if _val1.left and _val2.right:
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type = _val1.type
+                _val1.left = False
+            elif _val2.right:
+                res_type = _val2.type
+                _val2.right = False
+            else:
+                no_error = False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                if res_type == "NUMERIC":
+                    return Variable('NUMERIC', self.converse.converse_(_val1, 'NUMERIC').value + self.converse.converse_(_val2, 'NUMERIC').value)
+                elif res_type == "LOGIC":
+                    x1 = bool(self.converse.converse_(_val1, 'LOGIC').value)
+                    x2 = bool(self.converse.converse_(_val2, 'LOGIC').value)
+                    if (x1 != None) and (x2 != None):
+                        return Variable('LOGIC', not (bool(x1) or bool(x2)))
+                    else:
+                        if (x1 or x2) or (x1 == x2):
+                            return Variable('LOGIC', None)
+                        else:
+                            return Variable('LOGIC', True)
+                elif res_type == "STRING":
+                    sys.stderr.write(f'Illegal operation: type STRING\n')
+        # binary caret -- EXPONENTIATION or NOR (Peirce's arrow)
+    def bin_caret(self, _val1, _val2):
+        no_error=True
+        res_type='UNDEF'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            if _val1.type == "NUMERIC":
+                return Variable('NUMERIC', x1 ** x2)
+            elif _val1.type == "LOGIC":
+                if (x1 != None) and (x2 != None):
+                    return Variable('LOGIC', not (bool(x1) or bool(x2)))
+                else:
+                    if (x1 == x2) or (x1 == False) or (x2 == False):
+                        return Variable('LOGIC', None)
+                    else:
+                        return Variable('LOGIC', False)
 
+            elif _val1.type == "STRING":
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type STRING\n')
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                if res_type == "NUMERIC":
+                    return Variable('NUMERIC',
+                                    self.converse.converse_(_val1, 'NUMERIC').value + self.converse.converse_(_val2,
+                                                                                                              'NUMERIC').value)
+                elif res_type == "LOGIC":
+                    x1=bool(self.converse.converse_(_val1, 'LOGIC').value)
+                    x2=bool(self.converse.converse_(_val2, 'LOGIC').value)
+                    if (x1 != None) and (x2 != None):
+                        return Variable('LOGIC', not (bool(x1) and bool(x2)))
+                    else:
+                        if (x1 == x2) or (x1 == False) or (x2 == False):
+                            return Variable('LOGIC', None)
+                        else:
+                            return Variable('LOGIC', False)
+                elif res_type == "STRING":
+                    sys.stderr.write(f'Illegal operation: type STRING\n')
 
     # for const
     @staticmethod
@@ -324,7 +581,8 @@ class Interpreter:
 
 
 if __name__ == '__main__':
-    f = open("tiny_test.txt")
+    #f = open("tiny_test.txt")
+    f = open("logic_operations_test.txt")
     #f = open(r'lexer_test.txt')
     #f = open(r'bubble_sort.txt')
     text = f.read()
