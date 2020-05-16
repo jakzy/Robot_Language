@@ -200,16 +200,28 @@ class Interpreter:
                 sys.stderr.write(f'Undeclared variable\n')
             else:
                 _type = self.sym_table[self.scope][variable].type
-                if node.child.type == 'const':
-                    expression = self.interpreter_node(node.child)
-                elif (node.child.type == 'variable') or (node.child.type == 'assignment'):
-                    expression = self.interpreter_node(node.child)
-                elif node.child.type == 'binary_expression':
-                    expression = self.interpreter_node(node.child)
+                expression = self.interpreter_node(node.child)
                 self.assign(_type, variable, expression)
                 return expression
 
+        # statements -> cycle
+        elif node.type == 'cycle':
+            self.op_cycle(node)
+
         # EXPRESSION BLOCK
+
+        elif node.type == 'unary_expression':
+            exp = self.interpreter_node(node.child)
+            if exp.value is None:
+                return Variable(exp.type, exp.value)
+            else:
+                if exp.type == 'NUMERIC':
+                    return Variable('NUMERIC', -exp.value)
+                elif exp.type == 'LOGIC':
+                    return Variable('LOGIC', not exp.value)
+                else:
+                    sys.stderr.write(f'Illegal operation: illegal type\n')
+                    return Variable()
 
         # expression -> complex_expression
         elif node.type == 'binary_expression':
@@ -278,6 +290,11 @@ class Interpreter:
         else:
             self.sym_table[self.scope][variable].value = None
 
+    # for cycle
+    def op_cycle(self, node):
+        while self.converse.converse_(self.interpreter_node(node.child['condition']), 'LOGIC').value:
+            self.interpreter_node(node.child['body'])
+
     #### BINARY EXPRESSIONS ####
     # binary plus -- ADDITION or OR
     def bin_plus(self, _val1, _val2):
@@ -334,6 +351,7 @@ class Interpreter:
                             return Variable('LOGIC', None)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
+
     # binary minus -- SUBTRACTION or XOR
     def bin_minus(self, _val1, _val2):
         no_error=True
@@ -384,7 +402,8 @@ class Interpreter:
                         return Variable('LOGIC', None)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
-        # binary star -- MULTIPLICATION or AND
+
+    # binary star -- MULTIPLICATION or AND
     def bin_star(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
@@ -439,7 +458,8 @@ class Interpreter:
                             return Variable('LOGIC', False)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
-        # binary slash -- DIVISION or NAND (Sheffer stroke)
+
+    # binary slash -- DIVISION or NAND (Sheffer stroke)
     def bin_slash(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
@@ -494,7 +514,8 @@ class Interpreter:
                             return Variable('LOGIC', True)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
-        # binary caret -- EXPONENTIATION or NOR (Peirce's arrow)
+
+    # binary caret -- EXPONENTIATION or NOR (Peirce's arrow)
     def bin_caret(self, _val1, _val2):
         no_error=True
         res_type='UNDEF'
@@ -712,7 +733,7 @@ if __name__ == '__main__':
                 continue
             if isinstance(values, Variable):
                 if values.type == 'STRING':
-                    print(values.type, keys, '= \'', values.value,'\'')
+                    print(values.type, keys, '= \'', values.value, '\'')
                 else:
                     print(values.type, keys, '=', values.value)
     print('Records:')

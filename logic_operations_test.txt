@@ -1,3 +1,10 @@
+LOGIC test_NOT_0
+LOGIC test_NOT_1
+LOGIC test_NOT_X
+test_NOT_0  = - FALSE
+test_NOT_1  = - TRUE
+test_NOT_X  = - UNDEF
+
 LOGIC test_0_OR_0
 LOGIC test_0_OR_1
 LOGIC test_0_OR_X

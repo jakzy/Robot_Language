@@ -78,7 +78,7 @@ class Parser(object):
     @staticmethod
     def p_cycle(p):
         """ cycle : L_FBRACKET expression R_FBRACKET BLOCK inner_statements UNBLOCK"""
-        p[0] = Node('cycle', ch={'condition':p[2], 'body':p[5]})
+        p[0] = Node('cycle', ch={'condition': p[2], 'body': p[5]})
 
     @staticmethod
     def p_command(p):
