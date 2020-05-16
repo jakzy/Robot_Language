@@ -228,14 +228,14 @@ class Interpreter:
                 result = self.bin_slash(exp1, exp2)
             elif node.value == '^':
                 result = self.bin_caret(exp1, exp2)
-        #    elif node.value == '>':
-        #        result = self.bin_greater(exp1, exp2)
-        #    elif node.value == '<':
-        #        result = self.bin_less(exp1, exp2)
-        #    elif node.value == '?':
-        #        result = self.bin_equal(exp1, exp2)
-        #    elif node.value == '!':
-        #        result = self.bin_not_equal(exp1, exp2)
+            elif node.value == '>':
+                result = self.bin_greater(exp1, exp2)
+            elif node.value == '<':
+                result = self.bin_less(exp1, exp2)
+            elif node.value == '?':
+                result = self.bin_equal(exp1, exp2)
+            elif node.value == '!':
+                result = self.bin_not_equal(exp1, exp2)
             if exp1.right:
                 result.right = True
             if exp2.left:
@@ -278,7 +278,8 @@ class Interpreter:
         else:
             self.sym_table[self.scope][variable].value = None
 
-        # binary plus -- ADDITION or OR
+    #### BINARY EXPRESSIONS ####
+    # binary plus -- ADDITION or OR
     def bin_plus(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
@@ -333,7 +334,7 @@ class Interpreter:
                             return Variable('LOGIC', None)
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
-        # binary minus -- SUBTRACTION or XOR
+    # binary minus -- SUBTRACTION or XOR
     def bin_minus(self, _val1, _val2):
         no_error=True
         res_type='UNDEF'
@@ -518,7 +519,7 @@ class Interpreter:
                         return Variable('LOGIC', False)
 
             elif _val1.type == "STRING":
-                no_error=False
+                no_error = False
                 sys.stderr.write(f'Illegal operation: type STRING\n')
         else:
             if _val1.left and _val2.right:
@@ -551,6 +552,122 @@ class Interpreter:
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
 
+    def bin_greater(self, _val1, _val2):
+        no_error=True
+        res_type='LOGIC'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            return Variable('LOGIC', x1 > x2)
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                return Variable('LOGIC', self.converse.converse_(_val1, res_type).value > self.converse.converse_(_val2, res_type).value)
+
+    def bin_less(self, _val1, _val2):
+        no_error=True
+        res_type='LOGIC'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            return Variable('LOGIC', x1 < x2)
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                return Variable('LOGIC', self.converse.converse_(_val1, res_type).value < self.converse.converse_(_val2, res_type).value)
+
+    def bin_equal(self, _val1, _val2):
+        no_error=True
+        res_type='LOGIC'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            return Variable('LOGIC', x1 == x2)
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                return Variable('LOGIC', self.converse.converse_(_val1, res_type).value == self.converse.converse_(_val2, res_type).value)
+
+    def bin_not_equal(self, _val1, _val2):
+        no_error=True
+        res_type='LOGIC'
+        if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
+            _val1.type=_val2.type
+        if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            _val2.type=_val1.type
+        if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            return Variable()
+        x1=_val1.value
+        x2=_val2.value
+        if _val1.type == _val2.type:
+            return Variable('LOGIC', x1 != x2)
+        else:
+            if _val1.left and _val2.right:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion double definition is illegal\n')
+            elif _val1.left:
+                res_type=_val1.type
+                _val1.left=False
+            elif _val2.right:
+                res_type=_val2.type
+                _val2.right=False
+            else:
+                no_error=False
+                sys.stderr.write(f'Illegal operation: type conversion required\n')
+            if no_error:
+                return Variable('LOGIC', self.converse.converse_(_val1, res_type).value != self.converse.converse_(_val2, res_type).value)
+
     # for const
     @staticmethod
     def const_val(value):
@@ -581,8 +698,8 @@ class Interpreter:
 
 
 if __name__ == '__main__':
-    #f = open("tiny_test.txt")
-    f = open("logic_operations_test.txt")
+    f = open("tiny_test.txt")
+    #f = open("logic_operations_test.txt")
     #f = open(r'lexer_test.txt')
     #f = open(r'bubble_sort.txt')
     text = f.read()
