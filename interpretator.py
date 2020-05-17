@@ -3,6 +3,8 @@ from Parser.parser import Parser
 from typing import List, Dict, Optional
 from syntax_tree import Node
 import copy
+import numpy as np
+
 
 # Item of symbol table
 class Variable:
@@ -162,7 +164,7 @@ class Interpreter:
                 self.interpreter_node(ch)
 
         elif node.type == 'error':
-            self.error.call(self.error_types['UnexpectedError'], node)
+            sys.stderr.write(f'UNEXPECTED ERROR\n')
 
         # STATEMENTS BLOCK
 
@@ -171,7 +173,25 @@ class Interpreter:
             declaration_type = node.value
             declaration_child = node.child
             if (declaration_type in ['NUMERIC', 'LOGIC', 'STRING']) or (declaration_type in self.recs):
-                self.declare_variable(declaration_child, declaration_type)
+                if node.child.type == 'component_of':
+                    var = node.child.value
+                    indexes = []
+                    gen = {'parent': node.child, 'current': node.child.child}
+                    while not isinstance(gen['current'].child, list):
+                        if gen['current'].child.type == 'indexing':
+                            gen = {'parent': gen, 'current': gen['current'].child}
+                    elem = Variable(declaration_type)
+                    while gen != node.child:
+                        next_elem = []
+                        for i in range(gen['current'].value):
+                            next_elem.append(copy.copy(elem))
+                        elem = next_elem
+                        gen = gen['parent']
+                    declaration_child.child = elem
+                    declaration_type = ["ARRAY", declaration_type]
+                    self.declare_array(declaration_child.value, declaration_type, np.array(elem))
+                else:
+                    self.declare_variable(declaration_child, declaration_type)
             else:
                 sys.stderr.write(f'Can\'t declare the variable: illegal type\n')
 
@@ -274,6 +294,8 @@ class Interpreter:
         # expression -> variable
         elif node.type == 'variable':
             return self.get_value(node)
+
+        # expression -> component_of
 
     # for assign
     def assign(self, _type, variable, expression: Variable):
@@ -459,7 +481,7 @@ class Interpreter:
                 elif res_type == "STRING":
                     sys.stderr.write(f'Illegal operation: type STRING\n')
 
-    # binary slash -- DIVISION or NAND (Sheffer stroke)
+    # binary slash -- DIVISION or NAND (Sheffer's stroke)
     def bin_slash(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
@@ -711,6 +733,13 @@ class Interpreter:
                 self.declare(_type, node.value)
             return
 
+    def declare_array(self, _name, _type, _value):
+        if (_name in self.recs.keys()) or (_name in self.procs.keys()) or (_name in self.sym_table[self.scope].keys()):
+            sys.stderr.write(f'The name is already taken\n')
+        else:
+            self.sym_table[self.scope][_name]=[_type, _value]
+        return
+
     def declare(self, _type, _value):
         if (_value in self.recs.keys()) or (_value in self.procs.keys()) or (_value in self.sym_table[self.scope].keys()):
             sys.stderr.write(f'The variable is already declared\n')
@@ -729,13 +758,14 @@ if __name__ == '__main__':
     interpr.interpreter(text)
     for sym_table in interpr.sym_table:
         for keys, values in sym_table.items():
-            if keys == "#result":
-                continue
             if isinstance(values, Variable):
                 if values.type == 'STRING':
                     print(values.type, keys, '= \'', values.value, '\'')
                 else:
                     print(values.type, keys, '=', values.value)
+            elif isinstance(values, list):
+                print(values[0][0], ' of ', values[0][1], keys, '= \n', values[1])
+                print(values[1].shape)
     print('Records:')
     print(interpr.recs)
     print('Procedures:')

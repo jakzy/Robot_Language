@@ -156,10 +156,10 @@ class Parser(object):
     def p_variable(p):
         """variable : VARIABLE indexing
                     | VARIABLE"""
-        if len(p) == 2:
-            p[0] = Node(t='variable', val=p[1])
+        if len(p) == 3:
+            p[0]=Node(t='component_of', val=p[1], ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
         else:
-            p[0] = Node(t='component_of', val=p[1], ch=p[2], no=p.lineno(1), pos=p.lexpos(1))
+            p[0]=Node(t='variable', val=p[1])
 
     @staticmethod
     def p_indexing(p):
@@ -246,9 +246,9 @@ class Parser(object):
         """inner_statements :  inner_statement inner_statements
                             | inner_statement"""
         if len(p) == 3:
-            p[0] = Node(t='inner_statement', ch=[p[1], p[2]])
+            p[0] = Node(t='statements', ch=[p[1], p[2]])
         else:
-            p[0] = Node(t='inner_statement', ch=p[1])
+            p[0] = Node(t='statements', ch=[p[1]])
 
     @staticmethod
     def p_inner_statement(p):
