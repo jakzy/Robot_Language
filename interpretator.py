@@ -558,7 +558,7 @@ class Interpreter:
                 if _val1.type == "NUMERIC":
                     return Variable('NUMERIC', x1 // x2)
                 elif _val1.type == "LOGIC":
-                    if (x1 != None) and (x2 != None):
+                    if (x1 != None) and (x2 != None):  #bcoz False and None are too close
                         return Variable('LOGIC', not(bool(x1) and bool(x2)))
                     else:
                         if (x1 or x2) or (x1 == x2):
