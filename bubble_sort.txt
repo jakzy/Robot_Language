@@ -24,16 +24,15 @@ NUMERIC j1
 LOGIC swap
 LOGIC check
 NUMERIC j
-{work} BLOCK j = 1
-    swap = FALSE
-    {j < n-i-1} BLOCK j1 = j + 1
+{work} BLOCK j = 0
+    {j < n - 1} BLOCK j1 = j + 1
     check = arr[j] > arr[j1]
         {check} BLOCK SWAP (arr[j], arr[j1])
-            swap = TRUE
             check = FALSE
         UNBLOCK
-    UNBLOCK
+        j = j + 1
+        UNBLOCK
     i = i + 1
-    work = i < n
-    work = work * swap
+    work = i < n -1
 UNBLOCK
+
