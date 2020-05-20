@@ -166,11 +166,11 @@ class Interpreter:
             declaration_type = node.value
             declaration_child = node.child
             if (declaration_type in ['NUMERIC', 'LOGIC', 'STRING']) or (declaration_type in self.recs):
-                if node.child.type == 'component_of':
-                    if not isinstance(node.child.child.child, list):
+                if declaration_child.type == 'component_of':
+                    if not isinstance(declaration_child.child.child, list):
                         sys.stderr.write('ERROR, multidimensional arrays are illegal\n')
                     else:
-                        size = node.child.child.value
+                        size = declaration_child.child.value
                         if isinstance(size, str):
                             size = (self.get_variable(size)).value
                         elem = Variable(declaration_type)
@@ -203,6 +203,13 @@ class Interpreter:
             else:
                 self.procs[node.value] = self.parser.get_proc()[node.value]
 
+        # statements -> procedure call
+        elif node.type == 'procedure_call':
+            if not (node.value in self.procs.keys()):
+                sys.stderr.write(f'Undeclared procedure\n')
+            else:
+                self.run_procedure(node)
+
         # statements -> assignment
         elif node.type == 'assignment':
             name = node.value.value
@@ -215,7 +222,7 @@ class Interpreter:
                 else:
                     if isinstance(node.value.child, list):
                         res = self.sym_table[self.scope][name][1]
-                        if isinstance(expression, np.ndarray) :
+                        if isinstance(expression, np.ndarray):
                             for i in range(min(len(res), len(expression))):
                                 self.assign(res[i], expression[i])
                         else:
@@ -224,10 +231,14 @@ class Interpreter:
                         return expression
                     else:
                         index = node.value.child
-                        if isinstance(index, str):
+                        if isinstance(index.value, str):
                             index = (self.get_variable(index)).value
+                        else:
+                            index = index.value
                         res = self.sym_table[self.scope][name][1]
-                        res = res[index.value]
+                        res = res[index]
+                        self.assign(res, expression)
+                        return expression
                 self.assign(res, expression)
                 return expression
 
@@ -857,40 +868,63 @@ class Interpreter:
         if (_type in ['NUMERIC', 'LOGIC', 'STRING']) or (_type in self.recs.keys()):
             self.sym_table[self.scope][_value] = Variable(_type, None)
 
-    def get_value(self, node):
+    def get_value(self, node, sc=None):
+        if sc is None:
+            sc = self.scope
         if node.type == 'variable':
-            return self.get_variable(node.value)
+            return self.get_variable(node.value,sc)
+        elif node.type == 'component_of':
+            return self.get_component(node,sc)
         else:
             sys.stderr.write(f'Illegal value\n')
         return Variable()
 
-    def get_variable(self, name):
-        if name in self.sym_table[self.scope].keys():
-            if type(self.sym_table[self.scope][name]) == Variable:
-                return self.const_val(self.sym_table[self.scope][name].value)
+    def get_variable(self, name, sc=None):
+        if sc is None:
+            sc = self.scope
+        if name in self.sym_table[sc].keys():
+            if type(self.sym_table[sc][name]) == Variable:
+                return self.const_val(self.sym_table[sc][name].value)
             else:
-                return self.sym_table[self.scope][name][1]
+                return self.sym_table[sc][name][1]
         else:
             sys.stderr.write(f'Undeclared variable\n')
         return Variable()
 
-    def get_component(self, node):
+    def get_component(self, node, sc=None):
+        if sc is None:
+            sc = self.scope
         if node.type == 'component_of':
-            if node.value in self.sym_table[self.scope].keys():
-                res = self.sym_table[self.scope][node.value][1]
+            if node.value in self.sym_table[sc].keys():
+                res = self.sym_table[sc][node.value][1]
                 index = node.child
-                dims = len(res.shape)
-                while index and dims:
-                    dims -= 1
-                    if index.value not in range(len(res)):
-                        sys.stderr.write(f'Out of index range\n')
-                        return Variable()
+                while index:
+                    if type(index.value) == int:
+                        if index.value not in range(len(res)):
+                            sys.stderr.write(f'Out of index range\n')
+                            return Variable()
+                        else:
+                            res = res[index.value]
                     else:
-                        res = res[index.value]
+                        if index.value in self.sym_table[sc].keys():
+                            if type(self.sym_table[sc][index.value]) == Variable:
+                                res = res[self.converse.converse_(self.sym_table[sc][index.value], 'NUMERIC').value]
+                            else:
+                                new_array = []
+                                def_var = copy.deepcopy(res[0])
+                                def_var.value = None
+                                index_array = self.sym_table[sc][index.value][1]
+                                for i in range(len(index_array)):
+                                    num = self.converse.converse_(index_array[i], 'NUMERIC').value
+                                    if num in range(len(res)):
+                                        new_array.append(copy.deepcopy(res[num]))
+                                    else:
+                                        new_array.append(def_var)
+                                res = np.array(new_array)
+                                return res
+                        else:
+                            print('That could be a data field')
                     index = index.child
-                if index:
-                    sys.stderr.write(f'Out of dimension range\n')
-                    return Variable()
                 return res
             else:
                 sys.stderr.write(f'Undeclared variable\n')
@@ -898,6 +932,68 @@ class Interpreter:
             sys.stderr.write(f'Illegal value\n')
         return Variable()
 
+    def run_procedure(self, node):
+        self.sym_table.append(dict())
+        self.scope += 1
+        data = node.child.child
+        params = self.procs[node.value].child['parameters'].child
+        print('DATA: ', data)
+        print('PAR: ', params)
+        code = self.procs[node.value].child['body']
+        i = 0
+        name = None
+        ref_arr = dict()
+        while params and data:
+            if isinstance(data, list):
+                if data[0]:
+                    res = self.get_value(data[0], self.scope-1)
+                    print('GOT VAL', res)
+                name = [data[0].value]
+                if data[0].type == 'component_of':
+                    indexing = data[0].child.value
+                    if not type(indexing) == int:
+                        indexing=self.get_variable(indexing, self.scope - 1).value
+                    name.append(indexing)
+                data = data[len(data) - 1]
+            else:
+                name = [data.value]
+                if data.type == 'variables':
+                    pass
+                else:
+                    if type(data) == Node:
+                        res = self.get_value(data, self.scope - 1)
+                        print("\nFROM ", data)
+                        print('GOT VAL HERE', res)
+                    else:
+                        print('hiiiiiiii')
+                    if data.type == 'component_of':
+                        indexing = data.child.value
+                        if not type(indexing) == int:
+                            indexing = self.get_variable(indexing, self.scope-1).value
+                        name.append(indexing)
+                        data = data.child
+                data = data.child
+            if isinstance(params, list):
+                self.interpreter_node(params[0].value)
+                if params[0].type == 'ref_parameter':
+                    ref_arr[params[0].value.child.value] = name
+                self.sym_table[self.scope][params[0].value.child.value] = copy.deepcopy(res)
+                params = params[len(params)-1]
+            else:
+                params = params.child
+            i += 1
+        for var in self.sym_table[self.scope]:
+            if var in ref_arr.keys():
+                if len(ref_arr[var]) == 2:
+                    self.sym_table[self.scope-1][ref_arr[var][0]][1][ref_arr[var][1]]=self.sym_table[self.scope][var]
+                else:
+                    self.sym_table[self.scope-1][ref_arr[var][0]] = self.sym_table[self.scope][var]
+        print(self.sym_table[self.scope])
+        self.interpreter_node(code)
+        print(self.sym_table[self.scope])
+        self.sym_table.pop()
+        self.scope -= 1
+        return
 
 if __name__ == '__main__':
     f = open("tiny_test.txt")

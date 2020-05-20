@@ -219,15 +219,15 @@ class Parser(object):
         """parameters : parameter COMMA parameters
                       | parameter"""
         if len(p) == 2:
-            p[0] = Node(t='parameters', ch=p[1])
+            p[0] = Node(t='parameters', ch=[p[1]])
         else:
             p[0] = Node(t='parameters', ch=[p[1], p[3]])
 
     @staticmethod
     def p_parameter(p):
-        """parameter : type VARIABLE AMPERSAND
-                     | type VARIABLE"""
-        if len(p) == 3:
+        """parameter : declaration AMPERSAND
+                     | declaration"""
+        if len(p) == 2:
             p[0] = Node(t='parameter', val=p[1])
         else:
             p[0] = Node(t='ref_parameter', val=p[1])

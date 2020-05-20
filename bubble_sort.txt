@@ -1,4 +1,4 @@
-PROC SWAP [NUMERIC fst &, NUMERIC scd & ] BLOCK NUMERIC buf
+PROC SWAP [NUMERIC fst &, NUMERIC scd &] BLOCK NUMERIC buf
     buf = fst
     fst = scd
     scd = buf
@@ -20,13 +20,15 @@ NUMERIC i
 i = 0
 LOGIC work
 work = i < n
-{work} BLOCK NUMERIC j
-    j = 1
-    LOGIC swap
+NUMERIC j1
+LOGIC swap
+LOGIC check
+NUMERIC j
+{work} BLOCK j = 1
     swap = FALSE
-    {j < n-i-1} BLOCK LOGIC check
-    check = arr[j] > arr[j+1]
-        {check} BLOCK SWAP (arr[j], arr[j+1])
+    {j < n-i-1} BLOCK j1 = j + 1
+    check = arr[j] > arr[j1]
+        {check} BLOCK SWAP (arr[j], arr[j1])
             swap = TRUE
             check = FALSE
         UNBLOCK

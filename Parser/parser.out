@@ -72,8 +72,8 @@ Rule 66    part_expression -> expression DOT
 Rule 67    part_expression -> expression
 Rule 68    parameters -> parameter COMMA parameters
 Rule 69    parameters -> parameter
-Rule 70    parameter -> type VARIABLE AMPERSAND
-Rule 71    parameter -> type VARIABLE
+Rule 70    parameter -> declaration AMPERSAND
+Rule 71    parameter -> declaration
 Rule 72    statements_group -> BLOCK inner_statements UNBLOCK
 Rule 73    statements_group -> inner_statement
 Rule 74    inner_statements -> inner_statement inner_statements
@@ -144,7 +144,7 @@ TO                   : 32
 TRUE                 : 50
 UNBLOCK              : 16 72
 UNDEF                : 52
-VARIABLE             : 13 27 28 29 32 33 38 44 45 48 49 70 71
+VARIABLE             : 13 27 28 29 32 33 38 44 45 48 49
 VISION               : 25 93
 VOICE                : 26 94
 error                : 82 83 84 85 86 87 88 89 90 91 92 93 94
@@ -159,7 +159,7 @@ const                : 40
 conversion           : 30 31
 conversions          : 29 30
 cycle                : 7 78
-declaration          : 5 76
+declaration          : 5 70 71 76
 empty                : 11 81
 expression           : 14 16 26 42 43 64 65 66 67
 indexing             : 44 46 48
@@ -174,7 +174,7 @@ record               : 10
 statement            : 2 3
 statements           : 1 2
 statements_group     : 27
-type                 : 12 32 33 70 71 83
+type                 : 12 32 33 83
 variable             : 12 14 15 17 18 19 20 21 22 23 24 25 39 84
 variables            : 13 43
 
@@ -951,6 +951,9 @@ state 42
 
     ASSIGNMENT      reduce using rule 44 (variable -> VARIABLE indexing .)
     NEWLINE         reduce using rule 44 (variable -> VARIABLE indexing .)
+    AMPERSAND       reduce using rule 44 (variable -> VARIABLE indexing .)
+    COMMA           reduce using rule 44 (variable -> VARIABLE indexing .)
+    R_QBRACKET      reduce using rule 44 (variable -> VARIABLE indexing .)
     R_FBRACKET      reduce using rule 44 (variable -> VARIABLE indexing .)
     DOT             reduce using rule 44 (variable -> VARIABLE indexing .)
     PLUS            reduce using rule 44 (variable -> VARIABLE indexing .)
@@ -962,7 +965,6 @@ state 42
     LESS            reduce using rule 44 (variable -> VARIABLE indexing .)
     EQ              reduce using rule 44 (variable -> VARIABLE indexing .)
     NOTEQ           reduce using rule 44 (variable -> VARIABLE indexing .)
-    COMMA           reduce using rule 44 (variable -> VARIABLE indexing .)
     R_RBRACKET      reduce using rule 44 (variable -> VARIABLE indexing .)
 
 
@@ -982,6 +984,9 @@ state 44
     (12) declaration -> type variable .
 
     NEWLINE         reduce using rule 12 (declaration -> type variable .)
+    AMPERSAND       reduce using rule 12 (declaration -> type variable .)
+    COMMA           reduce using rule 12 (declaration -> type variable .)
+    R_QBRACKET      reduce using rule 12 (declaration -> type variable .)
 
 
 state 45
@@ -989,6 +994,9 @@ state 45
     (83) declaration -> type error .
 
     NEWLINE         reduce using rule 83 (declaration -> type error .)
+    AMPERSAND       reduce using rule 83 (declaration -> type error .)
+    COMMA           reduce using rule 83 (declaration -> type error .)
+    R_QBRACKET      reduce using rule 83 (declaration -> type error .)
 
 
 state 46
@@ -1001,6 +1009,9 @@ state 46
     (49) indexing -> . L_QBRACKET VARIABLE R_QBRACKET
 
     NEWLINE         reduce using rule 45 (variable -> VARIABLE .)
+    AMPERSAND       reduce using rule 45 (variable -> VARIABLE .)
+    COMMA           reduce using rule 45 (variable -> VARIABLE .)
+    R_QBRACKET      reduce using rule 45 (variable -> VARIABLE .)
     R_FBRACKET      reduce using rule 45 (variable -> VARIABLE .)
     DOT             reduce using rule 45 (variable -> VARIABLE .)
     PLUS            reduce using rule 45 (variable -> VARIABLE .)
@@ -1012,7 +1023,6 @@ state 46
     LESS            reduce using rule 45 (variable -> VARIABLE .)
     EQ              reduce using rule 45 (variable -> VARIABLE .)
     NOTEQ           reduce using rule 45 (variable -> VARIABLE .)
-    COMMA           reduce using rule 45 (variable -> VARIABLE .)
     R_RBRACKET      reduce using rule 45 (variable -> VARIABLE .)
     ASSIGNMENT      reduce using rule 45 (variable -> VARIABLE .)
     L_QBRACKET      shift and go to state 43
@@ -2266,8 +2276,10 @@ state 113
     (27) procedure -> PROC VARIABLE L_QBRACKET . parameters R_QBRACKET statements_group
     (68) parameters -> . parameter COMMA parameters
     (69) parameters -> . parameter
-    (70) parameter -> . type VARIABLE AMPERSAND
-    (71) parameter -> . type VARIABLE
+    (70) parameter -> . declaration AMPERSAND
+    (71) parameter -> . declaration
+    (12) declaration -> . type variable
+    (83) declaration -> . type error
     (35) type -> . NUMERIC
     (36) type -> . STRING
     (37) type -> . LOGIC
@@ -2280,7 +2292,8 @@ state 113
 
     parameters                     shift and go to state 151
     parameter                      shift and go to state 152
-    type                           shift and go to state 153
+    declaration                    shift and go to state 153
+    type                           shift and go to state 14
 
 state 114
 
@@ -2353,6 +2366,9 @@ state 117
 
     ASSIGNMENT      reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     NEWLINE         reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
+    AMPERSAND       reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
+    COMMA           reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
+    R_QBRACKET      reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     R_FBRACKET      reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     DOT             reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     PLUS            reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
@@ -2364,7 +2380,6 @@ state 117
     LESS            reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     EQ              reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     NOTEQ           reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
-    COMMA           reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     R_RBRACKET      reduce using rule 47 (indexing -> L_QBRACKET DECIMAL R_QBRACKET .)
     L_QBRACKET      shift and go to state 43
 
@@ -2381,6 +2396,9 @@ state 118
 
     ASSIGNMENT      reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     NEWLINE         reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
+    AMPERSAND       reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
+    COMMA           reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
+    R_QBRACKET      reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     R_FBRACKET      reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     DOT             reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     PLUS            reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
@@ -2392,7 +2410,6 @@ state 118
     LESS            reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     EQ              reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     NOTEQ           reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
-    COMMA           reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     R_RBRACKET      reduce using rule 49 (indexing -> L_QBRACKET VARIABLE R_QBRACKET .)
     L_QBRACKET      shift and go to state 43
 
@@ -2991,6 +3008,7 @@ state 150
 
     (38) type -> VARIABLE .
 
+    error           reduce using rule 38 (type -> VARIABLE .)
     VARIABLE        reduce using rule 38 (type -> VARIABLE .)
 
 
@@ -3012,10 +3030,12 @@ state 152
 
 state 153
 
-    (70) parameter -> type . VARIABLE AMPERSAND
-    (71) parameter -> type . VARIABLE
+    (70) parameter -> declaration . AMPERSAND
+    (71) parameter -> declaration .
 
-    VARIABLE        shift and go to state 168
+    AMPERSAND       shift and go to state 168
+    COMMA           reduce using rule 71 (parameter -> declaration .)
+    R_QBRACKET      reduce using rule 71 (parameter -> declaration .)
 
 
 state 154
@@ -3024,8 +3044,10 @@ state 154
     (29) record -> RECORD VARIABLE DATA L_QBRACKET . parameters R_QBRACKET conversions
     (68) parameters -> . parameter COMMA parameters
     (69) parameters -> . parameter
-    (70) parameter -> . type VARIABLE AMPERSAND
-    (71) parameter -> . type VARIABLE
+    (70) parameter -> . declaration AMPERSAND
+    (71) parameter -> . declaration
+    (12) declaration -> . type variable
+    (83) declaration -> . type error
     (35) type -> . NUMERIC
     (36) type -> . STRING
     (37) type -> . LOGIC
@@ -3038,7 +3060,8 @@ state 154
 
     parameters                     shift and go to state 169
     parameter                      shift and go to state 152
-    type                           shift and go to state 153
+    declaration                    shift and go to state 153
+    type                           shift and go to state 14
 
 state 155
 
@@ -3053,6 +3076,9 @@ state 156
 
     ASSIGNMENT      reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     NEWLINE         reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
+    AMPERSAND       reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
+    COMMA           reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
+    R_QBRACKET      reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     R_FBRACKET      reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     DOT             reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     PLUS            reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
@@ -3064,7 +3090,6 @@ state 156
     LESS            reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     EQ              reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     NOTEQ           reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
-    COMMA           reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
     R_RBRACKET      reduce using rule 46 (indexing -> L_QBRACKET DECIMAL R_QBRACKET indexing .)
 
 
@@ -3074,6 +3099,9 @@ state 157
 
     ASSIGNMENT      reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     NEWLINE         reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
+    AMPERSAND       reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
+    COMMA           reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
+    R_QBRACKET      reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     R_FBRACKET      reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     DOT             reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     PLUS            reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
@@ -3085,7 +3113,6 @@ state 157
     LESS            reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     EQ              reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     NOTEQ           reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
-    COMMA           reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
     R_RBRACKET      reduce using rule 48 (indexing -> L_QBRACKET VARIABLE R_QBRACKET indexing .)
 
 
@@ -3294,8 +3321,10 @@ state 167
     (68) parameters -> parameter COMMA . parameters
     (68) parameters -> . parameter COMMA parameters
     (69) parameters -> . parameter
-    (70) parameter -> . type VARIABLE AMPERSAND
-    (71) parameter -> . type VARIABLE
+    (70) parameter -> . declaration AMPERSAND
+    (71) parameter -> . declaration
+    (12) declaration -> . type variable
+    (83) declaration -> . type error
     (35) type -> . NUMERIC
     (36) type -> . STRING
     (37) type -> . LOGIC
@@ -3308,16 +3337,15 @@ state 167
 
     parameter                      shift and go to state 152
     parameters                     shift and go to state 181
-    type                           shift and go to state 153
+    declaration                    shift and go to state 153
+    type                           shift and go to state 14
 
 state 168
 
-    (70) parameter -> type VARIABLE . AMPERSAND
-    (71) parameter -> type VARIABLE .
+    (70) parameter -> declaration AMPERSAND .
 
-    AMPERSAND       shift and go to state 182
-    COMMA           reduce using rule 71 (parameter -> type VARIABLE .)
-    R_QBRACKET      reduce using rule 71 (parameter -> type VARIABLE .)
+    COMMA           reduce using rule 70 (parameter -> declaration AMPERSAND .)
+    R_QBRACKET      reduce using rule 70 (parameter -> declaration AMPERSAND .)
 
 
 state 169
@@ -3325,7 +3353,7 @@ state 169
     (28) record -> RECORD VARIABLE DATA L_QBRACKET parameters . R_QBRACKET
     (29) record -> RECORD VARIABLE DATA L_QBRACKET parameters . R_QBRACKET conversions
 
-    R_QBRACKET      shift and go to state 183
+    R_QBRACKET      shift and go to state 182
 
 
 state 170
@@ -3550,7 +3578,7 @@ state 179
     STRING          shift and go to state 30
     LOGIC           shift and go to state 31
 
-    inner_statements               shift and go to state 184
+    inner_statements               shift and go to state 183
     inner_statement                shift and go to state 159
     declaration                    shift and go to state 160
     assignment                     shift and go to state 161
@@ -3577,14 +3605,6 @@ state 181
 
 state 182
 
-    (70) parameter -> type VARIABLE AMPERSAND .
-
-    COMMA           reduce using rule 70 (parameter -> type VARIABLE AMPERSAND .)
-    R_QBRACKET      reduce using rule 70 (parameter -> type VARIABLE AMPERSAND .)
-
-
-state 183
-
     (28) record -> RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET .
     (29) record -> RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET . conversions
     (30) conversions -> . conversions conversion
@@ -3593,19 +3613,19 @@ state 183
     (33) conversion -> . CONVERSION FROM type VARIABLE
 
     NEWLINE         reduce using rule 28 (record -> RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET .)
-    CONVERSION      shift and go to state 187
+    CONVERSION      shift and go to state 186
 
-    conversions                    shift and go to state 185
-    conversion                     shift and go to state 186
+    conversions                    shift and go to state 184
+    conversion                     shift and go to state 185
 
-state 184
+state 183
 
     (72) statements_group -> BLOCK inner_statements . UNBLOCK
 
-    UNBLOCK         shift and go to state 188
+    UNBLOCK         shift and go to state 187
 
 
-state 185
+state 184
 
     (29) record -> RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET conversions .
     (30) conversions -> conversions . conversion
@@ -3613,11 +3633,11 @@ state 185
     (33) conversion -> . CONVERSION FROM type VARIABLE
 
     NEWLINE         reduce using rule 29 (record -> RECORD VARIABLE DATA L_QBRACKET parameters R_QBRACKET conversions .)
-    CONVERSION      shift and go to state 187
+    CONVERSION      shift and go to state 186
 
-    conversion                     shift and go to state 189
+    conversion                     shift and go to state 188
 
-state 186
+state 185
 
     (31) conversions -> conversion .
 
@@ -3625,23 +3645,23 @@ state 186
     NEWLINE         reduce using rule 31 (conversions -> conversion .)
 
 
-state 187
+state 186
 
     (32) conversion -> CONVERSION . TO type VARIABLE
     (33) conversion -> CONVERSION . FROM type VARIABLE
 
-    TO              shift and go to state 190
-    FROM            shift and go to state 191
+    TO              shift and go to state 189
+    FROM            shift and go to state 190
 
 
-state 188
+state 187
 
     (72) statements_group -> BLOCK inner_statements UNBLOCK .
 
     NEWLINE         reduce using rule 72 (statements_group -> BLOCK inner_statements UNBLOCK .)
 
 
-state 189
+state 188
 
     (30) conversions -> conversions conversion .
 
@@ -3649,9 +3669,24 @@ state 189
     NEWLINE         reduce using rule 30 (conversions -> conversions conversion .)
 
 
-state 190
+state 189
 
     (32) conversion -> CONVERSION TO . type VARIABLE
+    (35) type -> . NUMERIC
+    (36) type -> . STRING
+    (37) type -> . LOGIC
+    (38) type -> . VARIABLE
+
+    NUMERIC         shift and go to state 29
+    STRING          shift and go to state 30
+    LOGIC           shift and go to state 31
+    VARIABLE        shift and go to state 150
+
+    type                           shift and go to state 191
+
+state 190
+
+    (33) conversion -> CONVERSION FROM . type VARIABLE
     (35) type -> . NUMERIC
     (36) type -> . STRING
     (37) type -> . LOGIC
@@ -3666,34 +3701,19 @@ state 190
 
 state 191
 
-    (33) conversion -> CONVERSION FROM . type VARIABLE
-    (35) type -> . NUMERIC
-    (36) type -> . STRING
-    (37) type -> . LOGIC
-    (38) type -> . VARIABLE
+    (32) conversion -> CONVERSION TO type . VARIABLE
 
-    NUMERIC         shift and go to state 29
-    STRING          shift and go to state 30
-    LOGIC           shift and go to state 31
-    VARIABLE        shift and go to state 150
+    VARIABLE        shift and go to state 193
 
-    type                           shift and go to state 193
 
 state 192
 
-    (32) conversion -> CONVERSION TO type . VARIABLE
+    (33) conversion -> CONVERSION FROM type . VARIABLE
 
     VARIABLE        shift and go to state 194
 
 
 state 193
-
-    (33) conversion -> CONVERSION FROM type . VARIABLE
-
-    VARIABLE        shift and go to state 195
-
-
-state 194
 
     (32) conversion -> CONVERSION TO type VARIABLE .
 
@@ -3701,7 +3721,7 @@ state 194
     NEWLINE         reduce using rule 32 (conversion -> CONVERSION TO type VARIABLE .)
 
 
-state 195
+state 194
 
     (33) conversion -> CONVERSION FROM type VARIABLE .
 
