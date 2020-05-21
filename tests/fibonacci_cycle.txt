@@ -1,0 +1,16 @@
+NUMERIC fib1
+NUMERIC fib2
+fib1 = 1
+fib2 = 1
+
+NUMERIC n
+n = 30
+NUMERIC i
+i = 0
+NUMERIC fib_sum
+
+{i < n - 2} BLOCK fib_sum = fib1 + fib2
+    fib1 = fib2
+    fib2 = fib_sum
+    i = i + 1
+UNBLOCK

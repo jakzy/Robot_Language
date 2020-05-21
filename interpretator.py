@@ -2,6 +2,7 @@ import sys
 from Parser.parser import Parser
 from typing import List, Dict, Optional
 from syntax_tree import Node
+from robot import Robot
 import copy
 import numpy as np
 
@@ -130,6 +131,7 @@ class Interpreter:
         self.tree = None
         self.procs: Dict[str, Node] = dict()
         self.recs: Dict[str, Node] = dict()
+        self.robot = Robot()
 
     def interpreter(self,  program=None):
         self.program = program
@@ -286,6 +288,30 @@ class Interpreter:
         # statements -> cycle
         elif node.type == 'cycle':
             self.op_cycle(node)
+
+        elif node.type == 'command':
+            if node.value == 'MOVEUP':
+                self.robot.move_up()
+            elif node.value == 'MOVEDOWN':
+                self.robot.move_down()
+            elif node.value == 'MOVERIGHT':
+                self.robot.move_right()
+            elif node.value == 'MOVELEFT':
+                self.robot.move_left()
+            elif node.value == 'PINGUP':
+                self.robot.ping_up()
+            elif node.value == 'PINGDOWN':
+                self.robot.ping_down()
+            elif node.value == 'PINGRIGHT':
+                self.robot.ping_right()
+            elif node.value == 'PINGLEFT':
+                self.robot.ping_left()
+            elif node.value == 'VISION':
+                self.robot.vision()
+            elif node.value == 'VOICE':
+                self.robot.voice()
+            else:
+                sys.stderr.write('UNEXPECTED ERROR')
 
         # EXPRESSION BLOCK
 
@@ -1007,7 +1033,7 @@ class Interpreter:
                 if data[0].type == 'component_of':
                     indexing = data[0].child.value
                     if not type(indexing) == int:
-                        indexing=self.get_variable(indexing, self.scope - 1).value
+                        indexing = self.get_variable(indexing, self.scope-1).value
                     name.append(indexing)
                 data = data[len(data) - 1]
             else:
@@ -1069,10 +1095,12 @@ class Interpreter:
         return res_params, res_convs
 
 if __name__ == '__main__':
-    f = open("tiny_test.txt")
-    #f = open("logic_operations_test.txt")
-    #f = open(r'lexer_test.txt')
-    #f = open(r'bubble_sort.txt')
+    f = open("tests/tiny_test.txt")
+    #f = open("tests/fibonacci_cycle.txt")
+    #f=open("tests/fibonacci_recursion.txt")
+    #f = open("tests/logic_operations_test.txt")
+    #f = open(r'tests/lexer_test.txt')
+    #f = open(r'tests/bubble_sort.txt')
     text = f.read()
     f.close()
     interpr = Interpreter()
@@ -1090,7 +1118,7 @@ if __name__ == '__main__':
                 print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
 
     print('Records:')
-    #print(interpr.recs, sep='\n')
+    print('"<name>" : <structure>')
     for rec in interpr.recs:
         print(f'"{rec}" : {interpr.recs[rec]}')
     print('Procedures:')

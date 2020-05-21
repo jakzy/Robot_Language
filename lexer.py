@@ -108,7 +108,7 @@ class Lexer(object):
 
 if __name__ == '__main__':
     #f = open(r'lexer_test.txt')
-    f = open(r'tiny_test.txt')
+    f = open(r'tests/tiny_test.txt')
     #f = open(r'bubble_sort.txt')
     data = f.read()
     f.close()

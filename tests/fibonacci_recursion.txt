@@ -1,0 +1,23 @@
+PROC fibonacci [NUMERIC res&] BLOCK LOGIC check_1
+LOGIC check_2
+check_1 = res ? 1
+check_2 =  res ? 2
+check_1 = check_1 + check_2
+check_2 = - check_1
+{check_1} BLOCK res = 1
+    check_1 = FALSE
+UNBLOCK
+{check_2} BLOCK NUMERIC buf1
+    NUMERIC buf2
+    buf1 = res - 1
+    buf2 = res - 2
+    fibonacci(buf1)
+    fibonacci(buf2)
+    res = buf1 + buf2
+    check_2 = FALSE
+UNBLOCK
+UNBLOCK
+
+NUMERIC n
+n = 10
+fibonacci(n)

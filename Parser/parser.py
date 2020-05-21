@@ -304,7 +304,7 @@ class Parser(object):
 
 
 if __name__ == '__main__':
-    f = open("../tiny_test.txt")
+    f = open("../tests/tiny_test.txt")
     #f = open(r'lexer_test.txt')
     #f = open(r'bubble_sort.txt')
     text = f.read()
