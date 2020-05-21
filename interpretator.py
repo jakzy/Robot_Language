@@ -25,7 +25,10 @@ class Variable:
             self.value = var_value
 
     def __repr__(self):
-        return f'{self.type}, {self.value}'
+        if self.type == 'STRING':
+            return f'{self.type},"{self.value}"'
+        else:
+            return f'{self.type},{self.value}'
 
 
 class UserConversion:
@@ -170,10 +173,13 @@ class Interpreter:
                     if not isinstance(declaration_child.child.child, list):
                         sys.stderr.write('ERROR, multidimensional arrays are illegal\n')
                     else:
+                        if declaration_type in self.recs:
+                            elem = [declaration_type, copy.deepcopy(self.recs[declaration_type][0])]
+                        else:
+                            elem = Variable(declaration_type)
                         size = declaration_child.child.value
                         if isinstance(size, str):
                             size = (self.get_variable(size)).value
-                        elem = Variable(declaration_type)
                         res = []
                         for i in range(size):
                             res.append(copy.deepcopy(elem))
@@ -192,7 +198,7 @@ class Interpreter:
             elif (node.value in self.procs.keys()) or (node.value in self.sym_table[self.scope].keys()):
                 sys.stderr.write(f'Can\'t declare the record: name is taken\n')
             else:
-                self.recs[node.value] = self.parser.get_recs()[node.value]
+                self.recs[node.value] = self.describe_record(self.parser.get_recs()[node.value])
 
         # statements -> procedure
         elif node.type == 'procedure_description':
@@ -219,6 +225,40 @@ class Interpreter:
                 expression = self.interpreter_node(node.child)
                 if type(self.sym_table[self.scope][name]) == Variable:
                     res = self.sym_table[self.scope][name]
+                elif node.value.type == 'component_of':
+                    res = self.sym_table[self.scope][name]
+                    index = node.value.child
+                    while not isinstance(index, list):
+                        res = res[1]
+                        if isinstance(res, dict) and isinstance(index.value, str):
+                            res = res[index.value]
+                        else:
+                            if isinstance(index.value, str):
+                                res = res[(self.get_variable(index.value)).value]
+                            else:
+                                res = res[index.value]
+                        index = index.child
+                elif isinstance(node.value.child[1], dict):
+                    res = self.sym_table[self.scope][name]
+                    if isinstance(expression, list):
+                        if res[0] == expression[0]:
+                            res[1] = copy.deepcopy(expression[1])
+                        else:
+                            sys.stderr.write(f'DIFFERENT TYPES FOR RECORDS ARE ILLEGAL YET\n')
+                        return expression
+                    else:
+                        index=node.value.child
+                        while(index):
+                            if 'ARRAY' in res[0]:
+                                index = node.value.child
+                                if isinstance(index.value, str):
+                                    index=(self.get_variable(index)).value
+                                else:
+                                    index=index.value
+                                res=self.sym_table[self.scope][name][1]
+                                res=res[index]
+                                self.assign(res, expression)
+                                return expression
                 else:
                     if isinstance(node.value.child, list):
                         res = self.sym_table[self.scope][name][1]
@@ -295,7 +335,7 @@ class Interpreter:
             return result
 
         # binary_expression -> part_expression
-        if node.type == 'part_expression':
+        elif node.type == 'part_expression':
             exp = self.interpreter_node(node.child)
             if type(exp) == Variable:
                 if exp:
@@ -865,8 +905,10 @@ class Interpreter:
     def declare(self, _type, _value):
         if (_value in self.recs.keys()) or (_value in self.procs.keys()) or (_value in self.sym_table[self.scope].keys()):
             sys.stderr.write(f'The variable is already declared\n')
-        if (_type in ['NUMERIC', 'LOGIC', 'STRING']) or (_type in self.recs.keys()):
+        if _type in ['NUMERIC', 'LOGIC', 'STRING']:
             self.sym_table[self.scope][_value] = Variable(_type, None)
+        elif _type in self.recs.keys():
+            self.sym_table[self.scope][_value] = [_type, copy.deepcopy(self.recs[_type][0])]
 
     def get_value(self, node, sc=None):
         if sc is None:
@@ -896,15 +938,24 @@ class Interpreter:
             sc = self.scope
         if node.type == 'component_of':
             if node.value in self.sym_table[sc].keys():
-                res = self.sym_table[sc][node.value][1]
+                res = self.sym_table[sc][node.value]
                 index = node.child
-                while index:
+                n = 0
+                while not isinstance(index, list):
+                    print(n, ' ', res)
+                    n += 1
+                    res = res[1]
+                    print('->', n, ' ', res)
                     if type(index.value) == int:
                         if index.value not in range(len(res)):
                             sys.stderr.write(f'Out of index range\n')
                             return Variable()
                         else:
-                            res = res[index.value]
+                            if not isinstance(res, dict):
+                                res = res[index.value]
+                            else:
+                                sys.stderr.write(f'Index instead of field name\n')
+                                return Variable()
                     else:
                         if index.value in self.sym_table[sc].keys():
                             if type(self.sym_table[sc][index.value]) == Variable:
@@ -921,9 +972,13 @@ class Interpreter:
                                     else:
                                         new_array.append(def_var)
                                 res = np.array(new_array)
-                                return res
+                                #return res
                         else:
-                            print('That could be a data field')
+                            if index.value in res.keys():
+                                res = res[index.value]
+                                #return res
+                            else:
+                                sys.stderr.write(f'Illegal data field\n')
                     index = index.child
                 return res
             else:
@@ -995,6 +1050,24 @@ class Interpreter:
         self.scope -= 1
         return
 
+    def describe_record(self, node):
+        self.scope += 1
+        self.sym_table.append(dict())
+        p_params = node.child['parameters']
+        p_convs = node.child['conversions']
+        res_params = dict()
+        res_convs = dict()
+        while p_params:
+            if isinstance(p_params, list):
+                self.interpreter_node(p_params[0].value)
+                res_params[p_params[0].value.child.value] = self.sym_table[self.scope].pop(p_params[0].value.child.value)
+                p_params = p_params[len(p_params)-1]
+            else:
+                p_params = p_params.child
+        self.sym_table.pop()
+        self.scope -= 1
+        return res_params, res_convs
+
 if __name__ == '__main__':
     f = open("tiny_test.txt")
     #f = open("logic_operations_test.txt")
@@ -1011,9 +1084,14 @@ if __name__ == '__main__':
                     print(values.type, keys, '= \'', values.value, '\'')
                 else:
                     print(values.type, keys, '=', values.value)
+            elif isinstance(values[1], dict):
+                print(values[0], keys, '=\n', values[1])
             elif isinstance(values, list):
-                print(values[0][0], ' of ', values[0][1], keys, '= \n', values[1])
+                print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
+
     print('Records:')
-    print(interpr.recs)
+    #print(interpr.recs, sep='\n')
+    for rec in interpr.recs:
+        print(f'"{rec}" : {interpr.recs[rec]}')
     print('Procedures:')
-    print(interpr.procs)
+    print(interpr.procs, sep='\n')
