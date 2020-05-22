@@ -1,0 +1,10 @@
+<start coordinate>
+<field size>
+<FIELD>
+'X' - wall
+'E' - exit
+' ' - empty
+</FIELD>
+<PASSWORDS>
+<password coordinate> <exit coordinate> <password>
+</PASSWORDS>

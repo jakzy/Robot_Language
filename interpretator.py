@@ -2,7 +2,7 @@ import sys
 from Parser.parser import Parser
 from typing import List, Dict, Optional
 from syntax_tree import Node
-from robot import Robot
+import robot
 import copy
 import numpy as np
 
@@ -290,26 +290,58 @@ class Interpreter:
             self.op_cycle(node)
 
         elif node.type == 'command':
+            exp = self.interpreter_node(node.child)
             if node.value == 'MOVEUP':
-                self.robot.move_up()
+                if exp.type == 'NUMERIC':
+                    self.robot.move_up(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVEDOWN':
-                self.robot.move_down()
+                if exp.type == 'NUMERIC':
+                    self.robot.move_down(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVERIGHT':
-                self.robot.move_right()
+                if exp.type == 'NUMERIC':
+                    self.robot.move_right(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVELEFT':
-                self.robot.move_left()
+                if exp.type == 'NUMERIC':
+                    self.robot.move_left(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGUP':
-                self.robot.ping_up()
+                if exp.type == 'NUMERIC':
+                    self.robot.ping_up(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGDOWN':
-                self.robot.ping_down()
+                if exp.type == 'NUMERIC':
+                    self.robot.ping_down(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGRIGHT':
-                self.robot.ping_right()
+                if exp.type == 'NUMERIC':
+                    self.robot.ping_right(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGLEFT':
-                self.robot.ping_left()
+                if exp.type == 'NUMERIC':
+                    self.robot.ping_left(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VISION':
-                self.robot.vision()
+                if isinstance(exp, list):
+                    if exp[0][1] == 'STRING':
+                        self.robot.vision(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VOICE':
-                self.robot.voice()
+                if exp.type == 'STRING':
+                    self.robot.voice(exp)
+                else:
+                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
             else:
                 sys.stderr.write('UNEXPECTED ERROR')
 
@@ -940,9 +972,9 @@ class Interpreter:
         if sc is None:
             sc = self.scope
         if node.type == 'variable':
-            return self.get_variable(node.value,sc)
+            return self.get_variable(node.value, sc)
         elif node.type == 'component_of':
-            return self.get_component(node,sc)
+            return self.get_component(node, sc)
         else:
             sys.stderr.write(f'Illegal value\n')
         return Variable()
@@ -1093,6 +1125,55 @@ class Interpreter:
         self.sym_table.pop()
         self.scope -= 1
         return res_params, res_convs
+
+    def create_robot(self, file_name):
+        # MAP FILE DESCRIPTION
+        # < start coordinate >
+        # < field size >
+        # < FIELD >
+        # 'X' - wall
+        # 'E' - exit
+        # ' ' - empty
+        # < /FIELD >
+        # < PASSWORDS >
+        # < password coordinate > < exit coordinate > < password >
+        # < /PASSWORDS >
+
+        fl = open(file_name)
+        _text = fl.readlines()
+        robot_info = _text.pop(0).rstrip().split(" ")
+        map_size = _text.pop(0).rstrip().split(" ")
+
+        # robot set
+        x = int(robot_info[0])
+        y = int(robot_info[1])
+        _map = [0] * int(map_size[0])
+
+        for i in range(int(map_size[0])):
+            _map[i] = [0] * int((map_size[1]))
+        for i in range(int(map_size[0])):
+            for j in range(int(map_size[1])):
+                _map[i][j] = robot.Cell("EMPTY")
+        pos = 0
+        for i in range(int(map_size[0])):
+            line = list(_text.pop(0).rstrip())
+            line = [robot.Cell(robot.types[i]) for i in line]
+            _map[pos] = line
+            pos += 1
+        while len(_text) > 0:
+            password_info = _text.pop(0).rstrip().split(" ")
+            # PASSWORD
+            passw = password_info[4]
+            # WALL
+            wall_x = int(password_info[0])
+            wall_y = int(password_info[1])
+            _map[wall_x][wall_y].passwords.append(passw)
+            # EXIT
+            exit_x = int(password_info[2])
+            exit_y = int(password_info[3])
+            _map[exit_x][exit_y].passwords.append(passw)
+        return robot.Robot(_x=x, _y=y,  _map=_map)
+
 
 if __name__ == '__main__':
     f = open("tests/tiny_test.txt")

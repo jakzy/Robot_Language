@@ -1,0 +1,6 @@
+1 0
+3 5
+XXXXX
+    E
+XXXXX
+0 1 1 4 admin
