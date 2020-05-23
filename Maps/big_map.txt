@@ -1,0 +1,31 @@
+1 1
+29 25
+XXXXXXXXXXXXXXXXXXXXXXXXX
+X     XX X     X     X  X
+XXXX   X XXXX  XXXXX X  X
+X  XX    X  X      X   XX
+X XX   XXXX XXX    X  XXX
+X X      X   X   X  X  XX
+X XXX    X      XXX  X  X
+X        XXX XX  X   X  X
+XX    XX XX  X   X XXXX X
+X  XX  X   X X   X    X X
+XX XX  X   XXXXXXX  XXX X
+X     XXXX    X    XX   X
+X        X    XXX    X  X
+XXXXX XXXX   XX    X XX X
+X     X     XX     X  X X
+X XX XXXXXX XX XXXXXX X X
+X  X      X     XX XX X X
+XXXXXX XXXXX    X   X   X
+X    X     X  XXX  XXXX X
+X    X XXXXX          X X
+XXXX X X  X   X XXX XXXXX
+X    X X  X X     XXX   X
+X  X   X  XXXX          X
+X  XXXXX   X    XXX  XX X
+X             XXX XXXX  X
+XXXXX X   X X X X    X XX
+X     X   X X X X  X X  X
+X     X   X X   X  X   XX
+XXXXXXXXXXXXXXXXXXXXXXXXX

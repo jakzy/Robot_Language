@@ -2,10 +2,26 @@ import sys
 from Parser.parser import Parser
 from typing import List, Dict, Optional
 from syntax_tree import Node
-import robot
+import robot as rb
 import copy
 import numpy as np
 
+debug_prints = False
+
+menu_main = {'1. Functions',
+             '2. Robot',
+             '3. Other',
+             '0. Exit'}
+menu_functions = {'1. Bubble sort',
+                  '2. Fibonacci (with cycle)',
+                  '3. Fibonacci (with recursion)',
+                  '0. Exit'}
+functions_set = {'', 'tests/bubble_sort.txt',
+                 'tests/fibonacci_cycle.txt',
+                 'fibonacci_recursion.txt'}
+menu_robot = {'1. Tiny map',
+              '2. Big map',
+              '0. Exit'}
 
 # Item of symbol table
 class Variable:
@@ -26,7 +42,7 @@ class Variable:
             self.value = var_value
 
     def __repr__(self):
-        if self.type == 'STRING':
+        if self.type == 'STRING' and self.value:
             return f'{self.type},"{self.value}"'
         else:
             return f'{self.type},{self.value}'
@@ -46,27 +62,27 @@ class Conversion:
 
     def converse_(self, var, _type):
         if type(var) == np.ndarray:
-            print('LATER')
+            print('LATER________________')
             return Variable()
         if _type == var.type:
             return var
-        if _type == 'LOGIC':
+        elif _type == 'LOGIC':
             if var.type == 'NUMERIC':
                 return self.num_to_logic(var)
             if var.type == 'STRING':
                 return self.string_to_logic(var)
-        if _type == 'NUMERIC':
+        elif _type == 'NUMERIC':
             if var.type == 'LOGIC':
                 return self.logic_to_num(var)
             if var.type == 'STRING':
                 return self.string_to_num(var)
-        if _type == 'STRING':
+        elif _type == 'STRING':
             if var.type == 'LOGIC':
                 return self.logic_to_string(var)
             if var.type == 'NUMERIC':
                 return self.num_to_string(var)
-        else:
-            print('LATER')
+        elif _type == 'UNDEF':
+            return var
 
     def add_converse(self, _type_from, _type_to, _func):
         pass
@@ -131,7 +147,7 @@ class Interpreter:
         self.tree = None
         self.procs: Dict[str, Node] = dict()
         self.recs: Dict[str, Node] = dict()
-        self.robot = Robot()
+        self.robot = rb.Robot()
 
     def interpreter(self,  program=None):
         self.program = program
@@ -145,11 +161,16 @@ class Interpreter:
 
     @staticmethod
     def interpreter_tree(_tree):
-        print("Program tree:")
-        _tree.print()
-        print("\n")
+        if debug_prints:
+            print("Program tree:")
+            _tree.print()
+            print("\n")
 
     def interpreter_node(self, node):
+
+        if self.robot.found_exit:
+            return
+
         if node is None:
             return
         # program
@@ -289,61 +310,82 @@ class Interpreter:
         elif node.type == 'cycle':
             self.op_cycle(node)
 
+        # statements -> command
         elif node.type == 'command':
-            exp = self.interpreter_node(node.child)
+            ##########################################
+            name = node.child.value
+            if name not in self.sym_table[self.scope].keys():
+                sys.stderr.write(f'Undeclared variable\n')
+            else:
+                if type(self.sym_table[self.scope][name]) == Variable:
+                    exp = self.sym_table[self.scope][name]
+                elif node.child.type == 'component_of':
+                    exp = self.sym_table[self.scope][name]
+                    index = node.child.child
+                    while not isinstance(index, list):
+                        exp = exp[1]
+                        if isinstance(exp, dict) and isinstance(index.value, str):
+                            exp = exp[index.value]
+                        else:
+                            if isinstance(index.value, str):
+                                exp = exp[(self.get_variable(index.value)).value]
+                            else:
+                                exp = exp[index.value]
+                        index = index.child
+            ##########################################
             if node.value == 'MOVEUP':
                 if exp.type == 'NUMERIC':
-                    self.robot.move_up(exp)
+                    exp.value = self.robot.move_up(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVEDOWN':
                 if exp.type == 'NUMERIC':
-                    self.robot.move_down(exp)
+                    exp.value = self.robot.move_down(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVERIGHT':
                 if exp.type == 'NUMERIC':
-                    self.robot.move_right(exp)
+                    exp.value = self.robot.move_right(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVELEFT':
                 if exp.type == 'NUMERIC':
-                    self.robot.move_left(exp)
+                    exp.value = self.robot.move_left(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGUP':
                 if exp.type == 'NUMERIC':
-                    self.robot.ping_up(exp)
+                    exp.value = self.robot.ping_up(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGDOWN':
                 if exp.type == 'NUMERIC':
-                    self.robot.ping_down(exp)
+                    exp.value = self.robot.ping_down(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGRIGHT':
                 if exp.type == 'NUMERIC':
-                    self.robot.ping_right(exp)
+                    exp.value = self.robot.ping_right(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGLEFT':
                 if exp.type == 'NUMERIC':
-                    self.robot.ping_left(exp)
+                    exp.value = self.robot.ping_left(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VISION':
                 if isinstance(exp, list):
                     if exp[0][1] == 'STRING':
                         self.robot.vision(exp)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VOICE':
                 if exp.type == 'STRING':
-                    self.robot.voice(exp)
+                    self.robot.voice(exp.value)
                 else:
-                    sys.stderr.write('ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             else:
-                sys.stderr.write('UNEXPECTED ERROR')
+                sys.stderr.write(f'Line {node.lineno}: UNEXPECTED ERROR')
 
         # EXPRESSION BLOCK
 
@@ -364,9 +406,10 @@ class Interpreter:
         elif node.type == 'binary_expression':
             exp1 = self.interpreter_node(node.child[0])
             exp2 = self.interpreter_node(node.child[1])
-            print()
-            print('exp1: ' + str(exp1))
-            print('exp2: ' + str(exp2))
+            if debug_prints:
+                print()
+                print('exp1: ' + str(exp1))
+                print('exp2: ' + str(exp2))
             if node.value == '+':
                 result = self.bin_plus(exp1, exp2)
             elif node.value == '-':
@@ -400,19 +443,23 @@ class Interpreter:
                     if node.value:
                         if node.value == "right":
                             exp.right = True
-                            print('right up')
+                            if debug_prints:
+                                print('right up')
                         elif node.value == "left":
                             exp.left = True
-                            print('left up')
+                            if debug_prints:
+                                print('left up')
             else:
                 for elem in exp:
                     if node.value:
                         if node.value == "right":
                             elem.right=True
-                            print('right up')
+                            if debug_prints:
+                                print('right up')
                         elif node.value == "left":
                             elem.left = True
-                            print('left up')
+                            if debug_prints:
+                                print('left up')
             return exp
 
         # expression -> const
@@ -426,8 +473,6 @@ class Interpreter:
         # expression -> component_of
         elif node.type == 'component_of':
             return self.get_component(node)
-
-        # expression -> component_of
 
     # for assign
     def assign(self, variable: Variable, expression: Variable):
@@ -1000,10 +1045,12 @@ class Interpreter:
                 index = node.child
                 n = 0
                 while not isinstance(index, list):
-                    print(n, ' ', res)
+                    if debug_prints:
+                        print(n, ' ', res)
                     n += 1
                     res = res[1]
-                    print('->', n, ' ', res)
+                    if debug_prints:
+                        print('->', n, ' ', res)
                     if type(index.value) == int:
                         if index.value not in range(len(res)):
                             sys.stderr.write(f'Out of index range\n')
@@ -1050,8 +1097,9 @@ class Interpreter:
         self.scope += 1
         data = node.child.child
         params = self.procs[node.value].child['parameters'].child
-        print('DATA: ', data)
-        print('PAR: ', params)
+        if debug_prints:
+            print('DATA: ', data)
+            print('PAR: ', params)
         code = self.procs[node.value].child['body']
         i = 0
         name = None
@@ -1060,7 +1108,8 @@ class Interpreter:
             if isinstance(data, list):
                 if data[0]:
                     res = self.get_value(data[0], self.scope-1)
-                    print('GOT VAL', res)
+                    if debug_prints:
+                        print('GOT VAL', res)
                 name = [data[0].value]
                 if data[0].type == 'component_of':
                     indexing = data[0].child.value
@@ -1075,10 +1124,12 @@ class Interpreter:
                 else:
                     if type(data) == Node:
                         res = self.get_value(data, self.scope - 1)
-                        print("\nFROM ", data)
-                        print('GOT VAL HERE', res)
+                        if debug_prints:
+                            print("\nFROM ", data)
+                            print('GOT VAL HERE', res)
                     else:
-                        print('hiiiiiiii')
+                        if debug_prints:
+                            print('hiiiiiiii')
                     if data.type == 'component_of':
                         indexing = data.child.value
                         if not type(indexing) == int:
@@ -1101,9 +1152,7 @@ class Interpreter:
                     self.sym_table[self.scope-1][ref_arr[var][0]][1][ref_arr[var][1]]=self.sym_table[self.scope][var]
                 else:
                     self.sym_table[self.scope-1][ref_arr[var][0]] = self.sym_table[self.scope][var]
-        print(self.sym_table[self.scope])
         self.interpreter_node(code)
-        print(self.sym_table[self.scope])
         self.sym_table.pop()
         self.scope -= 1
         return
@@ -1153,11 +1202,11 @@ class Interpreter:
             _map[i] = [0] * int((map_size[1]))
         for i in range(int(map_size[0])):
             for j in range(int(map_size[1])):
-                _map[i][j] = robot.Cell("EMPTY")
+                _map[i][j] = rb.Cell("EMPTY")
         pos = 0
         for i in range(int(map_size[0])):
             line = list(_text.pop(0).rstrip())
-            line = [robot.Cell(robot.types[i]) for i in line]
+            line = [rb.Cell(rb.types[i]) for i in line]
             _map[pos] = line
             pos += 1
         while len(_text) > 0:
@@ -1172,10 +1221,16 @@ class Interpreter:
             exit_x = int(password_info[2])
             exit_y = int(password_info[3])
             _map[exit_x][exit_y].passwords.append(passw)
-        return robot.Robot(_x=x, _y=y,  _map=_map)
+        self.robot = rb.Robot(_x=x, _y=y,  _map=_map)
 
 
 if __name__ == '__main__':
+
+    #print('What do you wanna test?')
+    interpr = Interpreter()
+    interpr.create_robot('Maps/test_map.txt')
+    #interpr.create_robot('Maps/big_map.txt')
+    interpr.robot.show()
     f = open("tests/tiny_test.txt")
     #f = open("tests/fibonacci_cycle.txt")
     #f=open("tests/fibonacci_recursion.txt")
@@ -1184,7 +1239,6 @@ if __name__ == '__main__':
     #f = open(r'tests/bubble_sort.txt')
     text = f.read()
     f.close()
-    interpr = Interpreter()
     interpr.interpreter(text)
     for sym_table in interpr.sym_table:
         for keys, values in sym_table.items():

@@ -1,0 +1,113 @@
+LOGIC work
+work = TRUE
+NUMERIC step
+NUMERIC check_1
+NUMERIC check_2
+LOGIC wall1
+LOGIC not_wall1
+LOGIC wall2
+LOGIC not_wall2
+NUMERIC side
+side = 1
+NUMERIC max
+max = 100
+{work} BLOCK step = 1
+    {side ? 0} BLOCK check_1 = UNDEF
+        check_2 = UNDEF
+        PINGRIGHT(check_1)
+        wall1 = check_1 ? 0
+        not_wall1 = - wall1
+        {wall1} BLOCK PINGUP(check_2)
+            wall2 = check_2 ? 0
+            not_wall2 = - wall2
+            {not_wall2} BLOCK MOVEUP(step)
+                step = 1
+                not_wall2 = FALSE
+            UNBLOCK
+            {wall2} BLOCK side = 3
+                wall2 = FALSE
+            UNBLOCK
+            wall1 = FALSE
+        UNBLOCK
+        {not_wall1} BLOCK side = 1
+            MOVERIGHT(step)
+            step = 1
+            not_wall1 = FALSE
+        UNBLOCK
+    UNBLOCK
+
+    {side ? 1} BLOCK check_1 = UNDEF
+        check_2 = UNDEF
+        PINGDOWN(check_1)
+        wall1 = check_1 ? 0
+        not_wall1 = - wall1
+        {wall1} BLOCK PINGRIGHT(check_2)
+            wall2 = check_2 ? 0
+            not_wall2 = - wall2
+            {not_wall2} BLOCK MOVERIGHT(step)
+                step = 1
+                not_wall2 = FALSE
+            UNBLOCK
+            {wall2} BLOCK side = 0
+                wall2 = FALSE
+            UNBLOCK
+            wall1 = FALSE
+        UNBLOCK
+        {not_wall1} BLOCK side = 2
+            MOVEDOWN(step)
+            step = 1
+            not_wall1 = FALSE
+        UNBLOCK
+    UNBLOCK
+
+    {side ? 2} BLOCK check_1 = UNDEF
+        check_2 = UNDEF
+        PINGLEFT(check_1)
+        wall1 = check_1 ? 0
+        not_wall1 = - wall1
+        {wall1} BLOCK PINGDOWN(check_2)
+            wall2 = check_2 ? 0
+            not_wall2 = - wall2
+            {not_wall2} BLOCK MOVEDOWN(step)
+                step = 1
+                not_wall2 = FALSE
+            UNBLOCK
+            {wall2} BLOCK side = 1
+                wall2 = FALSE
+            UNBLOCK
+            wall1 = FALSE
+        UNBLOCK
+        {not_wall1} BLOCK side = 3
+            MOVELEFT(step)
+            step = 1
+            not_wall1 = FALSE
+        UNBLOCK
+    UNBLOCK
+
+    {side ? 3} BLOCK check_1 = UNDEF
+        check_2 = UNDEF
+        PINGUP(check_1)
+        wall1 = check_1 ? 0
+        not_wall1 = - wall1
+        {wall1} BLOCK PINGLEFT(check_2)
+            wall2 = check_2 ? 0
+            not_wall2 = - wall2
+            {not_wall2} BLOCK MOVELEFT(step)
+                step = 1
+                not_wall2 = FALSE
+            UNBLOCK
+            {wall2} BLOCK side = 2
+                wall2 = FALSE
+            UNBLOCK
+            wall1 = FALSE
+        UNBLOCK
+        {not_wall1} BLOCK side = 0
+            MOVEUP(step)
+            step = 11
+            not_wall1 = FALSE
+        UNBLOCK
+    UNBLOCK
+
+    max = max -1
+    work = max ! 0
+UNBLOCK
