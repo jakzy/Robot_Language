@@ -6,7 +6,7 @@ from time import sleep
 # as PyCharm doesnt like 'cls', a kludge here, sorry :(
 def clear():
     sleep(0.2)
-    print('\n'*1000)
+    print('\n'*1)
 
 
 types = {' ': 'FLOOR',
@@ -97,73 +97,96 @@ class Robot:
 
     def ping_up(self, _type):
         dist = 0
-        while self.map[self.x - dist - 1][self.y].type == "FLOOR":
-            dist += 1
+        ch = True
+        while ch and self.x - dist > 0:
+            ch = False
+            if self.map[self.x - dist - 1][self.y].type == "FLOOR":
+                ch = True
+                dist += 1
         if _type is None:
             return dist
-        elif (_type == cells['WALL']) and (self.map[self.x - dist][self.y].type == "WALL"):
-            return dist
-        elif (_type == cells['EXIT']) and (self.map[self.x - dist][self.y].type == "EXIT"):
-            return dist
+        elif self.x - dist > 0 :
+            if (_type == cells['WALL']) and (self.map[self.x - dist][self.y].type == "WALL"):
+                return dist
+            elif (_type == cells['EXIT']) and (self.map[self.x - dist-1][self.y].type == "EXIT"):
+                return dist
         else:
             return None
 
     def ping_down(self, _type):
         dist = 0
-        while self.map[self.x + dist + 1][self.y].type == "FLOOR":
-            dist += 1
+        ch = True
+        while ch and self.x + dist + 1 < len(self.map):
+            ch = False
+            if self.map[self.x + dist + 1][self.y].type == "FLOOR":
+                ch = True
+                dist += 1
         if _type is None:
             return dist
-        elif (_type == cells['WALL']) and (self.map[self.x + dist][self.y].type == "WALL"):
-            return dist
-        elif (_type == cells['EXIT']) and (self.map[self.x + dist][self.y].type == "EXIT"):
-            return dist
-        else:
-            return None
+        elif self.x + dist + 1 < len(self.map):
+            if (_type == cells['WALL']) and (self.map[self.x + dist +1][self.y].type == "WALL"):
+                return dist
+            elif (_type == cells['EXIT']) and (self.map[self.x + dist +1][self.y].type == "EXIT"):
+                return dist
+        return None
 
     def ping_right(self, _type):
         dist = 0
-        while self.map[self.x][self.y + dist + 1].type == "FLOOR":
-            dist += 1
+        ch = True
+        while ch and self.y + dist + 1 < len(self.map[self.x]):
+            ch = False
+            if self.map[self.x][self.y + dist + 1].type == "FLOOR":
+                ch = True
+                dist += 1
         if _type is None:
             return dist
-        elif (_type == cells['WALL']) and (self.map[self.x][self.y + dist].type == "WALL"):
-            return dist
-        elif (_type == cells['EXIT']) and (self.map[self.x][self.y + dist].type == "EXIT"):
-            return dist
-        else:
-            return None
+        elif self.y + dist + 1 < len(self.map[self.x]):
+            if (_type == cells['WALL']) and (self.map[self.x][self.y + dist+1].type == "WALL"):
+                return dist
+            elif (_type == cells['EXIT']) and (self.map[self.x][self.y + dist+1].type == "EXIT"):
+                return dist
+        return None
 
     def ping_left(self, _type):
         dist = 0
-        while self.map[self.x][self.y - dist - 1].type == "FLOOR":
-            dist += 1
+        ch = True
+        while ch and self.y - dist > 0:
+            ch = False
+            if self.map[self.x][self.y - dist - 1].type == "FLOOR":
+                ch = True
+                dist += 1
         if _type is None:
             return dist
-        elif (_type == cells['WALL']) and (self.map[self.x][self.y - dist].type == "WALL"):
-            return dist
-        elif (_type == cells['EXIT']) and (self.map[self.x][self.y - dist].type == "EXIT"):
-            return dist
-        else:
-            return None
+        elif self.y - dist > 0:
+            if (_type == cells['WALL']) and (self.map[self.x][self.y - dist].type == "WALL"):
+                return dist
+            elif (_type == cells['EXIT']) and (self.map[self.x][self.y - dist].type == "EXIT"):
+                return dist
+        return None
 
     def vision(self):
         pasw = []
-        if self.map[self.x][self.y - 1].type == 'WALL':
-            for psw in self.map[self.x][self.y - 1].passwords:
-                pasw.append(psw)
-        if self.map[self.x][self.y + 1].type == 'WALL':
-            for psw in self.map[self.x][self.y + 1].passwords:
-                pasw.append(psw)
-        if self.map[self.y][self.x - 1].type == 'WALL':
-            for psw in self.map[self.x - 1][self.y].passwords:
-                pasw.append(psw)
-        if self.map[self.x + 1][self.y].type == 'WALL':
-            for psw in self.map[self.x + 1][self.y].passwords:
-                pasw.append(psw)
+        if self.y > 0:
+            if self.map[self.x][self.y - 1].type == 'WALL':
+                for psw in self.map[self.x][self.y - 1].passwords:
+                    pasw.append(psw)
+        if self.y + 1 < len(self.map[self.x]):
+            if self.map[self.x][self.y + 1].type == 'WALL':
+                for psw in self.map[self.x][self.y + 1].passwords:
+                    pasw.append(psw)
+        if self.x > 0:
+            if self.map[self.x - 1][self.y].type == 'WALL':
+                for psw in self.map[self.x - 1][self.y].passwords:
+                    pasw.append(psw)
+        if self.x + 1 < len(self.map):
+            if self.map[self.x + 1][self.y].type == 'WALL':
+                for psw in self.map[self.x + 1][self.y].passwords:
+                    pasw.append(psw)
+        #print('LOOK HERE:', pasw)
         return pasw
 
     def voice(self, pasw):
+        print('LOOK AT MY PASSWORD:', pasw)
         if self.map[self.x][self.y - 1].type == 'EXIT':
             if pasw in self.map[self.x][self.y-1].passwords:
                 self.found_exit = True

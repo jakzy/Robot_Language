@@ -189,24 +189,20 @@ class Interpreter:
 
         # statements -> declaration
         elif node.type == 'declaration':
-            declaration_type = node.value
-            declaration_child = node.child
+            declaration_type=node.value
+            declaration_child=node.child
             if (declaration_type in ['NUMERIC', 'LOGIC', 'STRING']) or (declaration_type in self.recs):
                 if declaration_child.type == 'component_of':
-                    if not isinstance(declaration_child.child.child, list):
-                        sys.stderr.write('ERROR, multidimensional arrays are illegal\n')
-                    else:
                         if declaration_type in self.recs:
-                            elem = [declaration_type, copy.deepcopy(self.recs[declaration_type][0])]
+                            elem=[declaration_type, copy.deepcopy(self.recs[declaration_type][0])]
                         else:
-                            elem = Variable(declaration_type)
-                        size = declaration_child.child.value
+                            elem=Variable(declaration_type)
+                        size=declaration_child.child.value
                         if isinstance(size, str):
-                            size = (self.get_variable(size)).value
-                        res = []
+                            size=(self.get_variable(size)).value
+                        res=[]
                         for i in range(size):
                             res.append(copy.deepcopy(elem))
-                        declaration_child.child = res
                         declaration_type = ["ARRAY", declaration_type]
                         self.declare_array(declaration_child.value, declaration_type, np.array(res))
                 else:
@@ -235,7 +231,7 @@ class Interpreter:
         # statements -> procedure call
         elif node.type == 'procedure_call':
             if not (node.value in self.procs.keys()):
-                sys.stderr.write(f'Undeclared procedure\n')
+                sys.stderr.write(f'Line {node.lineno}: Undeclared procedure\n')
             else:
                 self.run_procedure(node)
 
@@ -243,7 +239,7 @@ class Interpreter:
         elif node.type == 'assignment':
             name = node.value.value
             if name not in self.sym_table[self.scope].keys():
-                sys.stderr.write(f'Undeclared variable\n')
+                sys.stderr.write(f'Line {node.lineno}: Undeclared variable\n')
             else:
                 expression = self.interpreter_node(node.child)
                 if type(self.sym_table[self.scope][name]) == Variable:
@@ -270,8 +266,8 @@ class Interpreter:
                             sys.stderr.write(f'DIFFERENT TYPES FOR RECORDS ARE ILLEGAL YET\n')
                         return expression
                     else:
-                        index=node.value.child
-                        while(index):
+                        index = node.value.child
+                        while index:
                             if 'ARRAY' in res[0]:
                                 index = node.value.child
                                 if isinstance(index.value, str):
@@ -315,12 +311,12 @@ class Interpreter:
             ##########################################
             name = node.child.value
             if name not in self.sym_table[self.scope].keys():
-                sys.stderr.write(f'Undeclared variable\n')
+                sys.stderr.write(f'Line {node.lineno}: Undeclared variable\n')
             else:
+                exp = self.sym_table[self.scope][name]
                 if type(self.sym_table[self.scope][name]) == Variable:
-                    exp = self.sym_table[self.scope][name]
+                    pass
                 elif node.child.type == 'component_of':
-                    exp = self.sym_table[self.scope][name]
                     index = node.child.child
                     while not isinstance(index, list):
                         exp = exp[1]
@@ -376,7 +372,9 @@ class Interpreter:
             elif node.value == 'VISION':
                 if isinstance(exp, list):
                     if exp[0][1] == 'STRING':
-                        self.robot.vision(exp)
+                        pasws = self.robot.vision()
+                        if debug_prints:
+                            print('WE GOT SUCH PASSWORDS:', pasws)
                 else:
                     sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VOICE':
@@ -1029,11 +1027,13 @@ class Interpreter:
             sc = self.scope
         if name in self.sym_table[sc].keys():
             if type(self.sym_table[sc][name]) == Variable:
-                return self.const_val(self.sym_table[sc][name].value)
+                return copy.copy(self.sym_table[sc][name])
+            elif isinstance(self.sym_table[sc][name], list):
+                return self.sym_table[sc][name]
             else:
-                return self.sym_table[sc][name][1]
+                return self.sym_table[sc][name]
         else:
-            sys.stderr.write(f'Undeclared variable\n')
+            sys.stderr.write(f' Scope {sc}: Undeclared variable\n')
         return Variable()
 
     def get_component(self, node, sc=None):
@@ -1047,8 +1047,9 @@ class Interpreter:
                 while not isinstance(index, list):
                     if debug_prints:
                         print(n, ' ', res)
-                    n += 1
-                    res = res[1]
+                        n += 1
+                    if isinstance(res, list):
+                        res = res[1]
                     if debug_prints:
                         print('->', n, ' ', res)
                     if type(index.value) == int:
@@ -1096,6 +1097,8 @@ class Interpreter:
         self.sym_table.append(dict())
         self.scope += 1
         data = node.child.child
+        if node.value == 'try_pass':
+            print('HEEERRRRRRRRRRRRRREEEEEEEEEEEEEEEEEEEEEEEE')
         params = self.procs[node.value].child['parameters'].child
         if debug_prints:
             print('DATA: ', data)
@@ -1114,7 +1117,7 @@ class Interpreter:
                 if data[0].type == 'component_of':
                     indexing = data[0].child.value
                     if not type(indexing) == int:
-                        indexing = self.get_variable(indexing, self.scope-1).value
+                        indexing=self.get_variable(indexing, self.scope - 1).value
                     name.append(indexing)
                 data = data[len(data) - 1]
             else:
@@ -1152,7 +1155,11 @@ class Interpreter:
                     self.sym_table[self.scope-1][ref_arr[var][0]][1][ref_arr[var][1]]=self.sym_table[self.scope][var]
                 else:
                     self.sym_table[self.scope-1][ref_arr[var][0]] = self.sym_table[self.scope][var]
+        if debug_prints:
+            print(self.sym_table[self.scope])
         self.interpreter_node(code)
+        if debug_prints:
+            print(self.sym_table[self.scope])
         self.sym_table.pop()
         self.scope -= 1
         return
@@ -1240,6 +1247,7 @@ if __name__ == '__main__':
     text = f.read()
     f.close()
     interpr.interpreter(text)
+    print('Exit found:', interpr.robot.found_exit)
     for sym_table in interpr.sym_table:
         for keys, values in sym_table.items():
             if isinstance(values, Variable):
@@ -1258,3 +1266,6 @@ if __name__ == '__main__':
         print(f'"{rec}" : {interpr.recs[rec]}')
     print('Procedures:')
     print(interpr.procs, sep='\n')
+
+    for st in interpr.robot.map:
+        print(st)

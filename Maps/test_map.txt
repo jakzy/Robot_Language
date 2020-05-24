@@ -1,10 +1,7 @@
 1 0
-7 7
-XXXXXXX
-  X   X
-X X X X
-X X X X
-X XXX X
-X     X
-XXXXXEX
-0 5 6 5 MEPhI
+3 7
+XE X XX
+      X
+ XXX EX
+1 6 2 5 MEPhI
+0 0 0 1 Best
