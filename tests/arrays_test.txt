@@ -1,0 +1,28 @@
+NUMERIC arr1 [5]
+arr1 = 7
+
+NUMERIC arr2 [5]
+arr2[0] = 1
+arr2[1] = 2
+arr2[2] = 3
+arr2[3] = 4
+arr2[4] = 5
+
+NUMERIC arr3[5]
+arr3 = arr1*6 - arr2*arr2
+
+STRING univers[5]
+univers[0] = "NRNU MEPhI"
+univers[1] = "MSU"
+univers[2] = "MIPT"
+univers[3] = "MIT"
+univers[4] = "SYNERGY"
+STRING chosen[3]
+NUMERIC choice[3]
+choice[0] = 0
+choice[1] = 2
+choice[2] = 7
+chosen = univers[choice]
+
+LOGIC compare[3]
+compare = univers ? chosen

@@ -1,0 +1,11 @@
+NUMERIC a
+a = 1
+NUMERIC b
+b = 2
+NUMERIC d
+d = 5
+LOGIC e
+e = TRUE
+STRING f
+f = "15"
+a = a .+ e *. b - f /.d

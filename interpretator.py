@@ -27,9 +27,13 @@ map_set = ['', 'Maps/test_map.txt',
 
 menu_other = ['1. Logic operations',
               '2. Arithmetic operations',
+              '3. Array operations',
+              '4. Dotted operations (multi typical)',
               '0. Exit']
 other_set = ['', 'tests/logic_operations_test.txt',
-             'tests/arithm_operations_test.txt']
+             'tests/arithm_operations_test.txt',
+             'tests/arrays_test.txt',
+             'tests/dotted_test.txt']
 
 
 class Exit(Exception):
@@ -276,7 +280,7 @@ class Interpreter:
                             else:
                                 res = res[index.value]
                         index = index.child
-                elif isinstance(node.value.child[1], dict):
+                elif isinstance(node.value.child, dict):
                     res = self.sym_table[self.scope][name]
                     if isinstance(expression, list):
                         if res[0] == expression[0]:
@@ -516,9 +520,11 @@ class Interpreter:
     def bin_plus(self, _val1, _val2):
         no_error = True
         res_type = 'UNDEF'
-        if type(_val1) == np.ndarray:
-            res = copy.deepcopy(_val1)
-            if type(_val2) == np.ndarray:
+        if type(_val1) == list:
+            _val1=_val1[1]
+            res=copy.deepcopy(_val1)
+            if type(_val2) == list:
+                _val2=_val2[1]
                 for i in range(min(len(_val1), len(_val2))):
                     res[i] = self.bin_plus(_val1[i], _val2[i])
             else:
@@ -643,9 +649,11 @@ class Interpreter:
     def bin_star(self, _val1, _val2):
         no_error = True
         res_type='UNDEF'
-        if type(_val1) == np.ndarray:
+        if type(_val1) == list:
+            _val1 = _val1[1]
             res=copy.deepcopy(_val1)
-            if type(_val2) == np.ndarray:
+            if type(_val2) == list:
+                _val2 = _val2[1]
                 for i in range(min(len(_val1), len(_val2))):
                     res[i]=self.bin_star(_val1[i], _val2[i])
             else:
@@ -920,9 +928,11 @@ class Interpreter:
     def bin_equal(self, _val1, _val2):
         no_error=True
         res_type='LOGIC'
-        if type(_val1) == np.ndarray:
+        if type(_val1) == list:
+            _val1=_val1[1]
             res=copy.deepcopy(_val1)
-            if type(_val2) == np.ndarray:
+            if type(_val2) == list:
+                _val2=_val2[1]
                 for i in range(min(len(_val1), len(_val2))):
                     res[i]=self.bin_equal(_val1[i], _val2[i])
             else:
@@ -931,13 +941,13 @@ class Interpreter:
             return res
         else:
             if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
-                _val1.type=_val2.type
+                _val1.type = _val2.type
             if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
-                _val2.type=_val1.type
+                _val2.type = _val1.type
             if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
                 return Variable()
-            x1=_val1.value
-            x2=_val2.value
+            x1 = _val1.value
+            x2 = _val2.value
             if _val1.type == _val2.type:
                 return Variable('LOGIC', x1 == x2)
             else:
