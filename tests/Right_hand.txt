@@ -71,7 +71,7 @@ NUMERIC check_2
 NUMERIC side
 side = 1
 NUMERIC max
-max = 10
+max = 100
 
 LOGIC work
 work = TRUE

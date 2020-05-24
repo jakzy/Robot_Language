@@ -1,0 +1,10 @@
+NUMERIC exp1
+NUMERIC exp2
+NUMERIC exp3
+NUMERIC exp4
+NUMERIC exp5
+exp1 = 42 - 10 + 24 + -14
+exp2 = 2 + 2 * 2
+exp3 = 2^3^2 - 5 * 10^2
+exp4 = 42 - 48/2^3 * 7
+exp5 = 17 - 5 * 6/3 - 2 + 4/2

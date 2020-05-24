@@ -8,20 +8,32 @@ import numpy as np
 
 debug_prints = False
 
-menu_main = {'1. Functions',
+menu_main = ['1. Functions',
              '2. Robot',
              '3. Other',
-             '0. Exit'}
-menu_functions = {'1. Bubble sort',
+             '0. Nothing, thank you']
+menu_functions = ['1. Bubble sort',
                   '2. Fibonacci (with cycle)',
                   '3. Fibonacci (with recursion)',
-                  '0. Exit'}
-functions_set = {'', 'tests/bubble_sort.txt',
+                  '0. Exit']
+functions_set = ['', 'tests/bubble_sort.txt',
                  'tests/fibonacci_cycle.txt',
-                 'fibonacci_recursion.txt'}
-menu_robot = {'1. Tiny map',
+                 'tests/fibonacci_recursion.txt']
+menu_robot = ['1. Tiny map',
               '2. Big map',
-              '0. Exit'}
+              '0. Exit']
+map_set = ['', 'Maps/test_map.txt',
+           'Maps/big_map.txt']
+
+menu_other = ['1. Logic operations',
+              '2. Arithmetic operations',
+              '0. Exit']
+other_set = ['', 'tests/logic_operations_test.txt',
+             'tests/arithm_operations_test.txt']
+
+
+class Exit(Exception):
+    pass
 
 # Item of symbol table
 class Variable:
@@ -61,9 +73,9 @@ class Conversion:
         self.user_conversions: Dict[str, UserConversion] = dict()
 
     def converse_(self, var, _type):
-        if type(var) == np.ndarray:
-            print('LATER________________')
-            return Variable()
+        #if type(var) == np.ndarray:
+        #    print('LATER')
+        #    return Variable()
         if _type == var.type:
             return var
         elif _type == 'LOGIC':
@@ -169,18 +181,25 @@ class Interpreter:
     def interpreter_node(self, node):
 
         if self.robot.found_exit:
-            return
+            raise Exit
 
         if node is None:
             return
         # program
+
         if node.type == 'program':
-            self.interpreter_node(node.child)
+            try:
+                self.interpreter_node(node.child)
+            except Exit:
+                pass
 
         # program -> statements
         elif node.type == 'statements':
             for ch in node.child:
-                self.interpreter_node(ch)
+                try:
+                    self.interpreter_node(ch)
+                except Exit:
+                    raise Exit
 
         elif node.type == 'error':
             sys.stderr.write(f'UNEXPECTED ERROR\n')
@@ -329,6 +348,8 @@ class Interpreter:
                                 exp = exp[index.value]
                         index = index.child
             ##########################################
+
+
             if node.value == 'MOVEUP':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_up(exp.value)
@@ -373,8 +394,8 @@ class Interpreter:
                 if isinstance(exp, list):
                     if exp[0][1] == 'STRING':
                         pasws = self.robot.vision()
-                        if debug_prints:
-                            print('WE GOT SUCH PASSWORDS:', pasws)
+                        for i in range(len(pasws)):
+                            exp[1][i].value = pasws[i]
                 else:
                     sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VOICE':
@@ -1097,8 +1118,6 @@ class Interpreter:
         self.sym_table.append(dict())
         self.scope += 1
         data = node.child.child
-        if node.value == 'try_pass':
-            print('HEEERRRRRRRRRRRRRREEEEEEEEEEEEEEEEEEEEEEEE')
         params = self.procs[node.value].child['parameters'].child
         if debug_prints:
             print('DATA: ', data)
@@ -1233,39 +1252,114 @@ class Interpreter:
 
 if __name__ == '__main__':
 
-    #print('What do you wanna test?')
-    interpr = Interpreter()
-    interpr.create_robot('Maps/test_map.txt')
-    #interpr.create_robot('Maps/big_map.txt')
-    interpr.robot.show()
-    f = open("tests/tiny_test.txt")
-    #f = open("tests/fibonacci_cycle.txt")
-    #f=open("tests/fibonacci_recursion.txt")
-    #f = open("tests/logic_operations_test.txt")
-    #f = open(r'tests/lexer_test.txt')
-    #f = open(r'tests/bubble_sort.txt')
-    text = f.read()
-    f.close()
-    interpr.interpreter(text)
-    print('Exit found:', interpr.robot.found_exit)
-    for sym_table in interpr.sym_table:
-        for keys, values in sym_table.items():
-            if isinstance(values, Variable):
-                if values.type == 'STRING':
-                    print(values.type, keys, '= \'', values.value, '\'')
-                else:
-                    print(values.type, keys, '=', values.value)
-            elif isinstance(values[1], dict):
-                print(values[0], keys, '=\n', values[1])
-            elif isinstance(values, list):
-                print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
+    work = True
 
-    print('Records:')
-    print('"<name>" : <structure>')
-    for rec in interpr.recs:
-        print(f'"{rec}" : {interpr.recs[rec]}')
-    print('Procedures:')
-    print(interpr.procs, sep='\n')
+    while work:
+        print('What do you want to test?')
+        for msg in menu_main:
+            print(msg)
+        choice = int(input())
+        if choice == 0:
+            work = False
+            print("Good bye")
+        elif choice == 1:
+            print('You\'ve chosen functions')
+            work1 = True
+            while work1:
+                for msg in menu_functions:
+                    print(msg)
+                choice = int(input())
+                if choice == 0:
+                    work1 = False
+                elif choice in range(len(functions_set)):
+                    interpr=Interpreter()
+                    f = open(functions_set[choice])
+                    text=f.read()
+                    f.close()
+                    interpr.interpreter(text)
+                    for sym_table in interpr.sym_table:
+                        for keys, values in sym_table.items():
+                            if isinstance(values, Variable):
+                                if values.type == 'STRING':
+                                    print(values.type, keys, '= \'', values.value, '\'')
+                                else:
+                                    print(values.type, keys, '=', values.value)
+                            elif isinstance(values[1], dict):
+                                print(values[0], keys, '=\n', values[1])
+                            elif isinstance(values, list):
+                                print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
 
-    for st in interpr.robot.map:
-        print(st)
+                    print('Records:')
+                    print('"<name>" : <structure>')
+                    for rec in interpr.recs:
+                        print(f'"{rec}" : {interpr.recs[rec]}')
+                    print('Procedures:')
+                    print(interpr.procs)
+        elif choice == 2:
+            print('You\'ve chosen robot')
+            work1=True
+            while work1:
+                for msg in menu_robot:
+                    print(msg)
+                choice=int(input())
+                if choice == 0:
+                    work1 = False
+                elif choice in range(len(menu_robot)):
+                    interpr=Interpreter()
+                    interpr.create_robot(map_set[choice])
+                    f=open('tests/Right_hand.txt')
+                    text=f.read()
+                    f.close()
+                    interpr.interpreter(text)
+                    for sym_table in interpr.sym_table:
+                        for keys, values in sym_table.items():
+                            if isinstance(values, Variable):
+                                if values.type == 'STRING':
+                                    print(values.type, keys, '= \'', values.value, '\'')
+                                else:
+                                    print(values.type, keys, '=', values.value)
+                            elif isinstance(values[1], dict):
+                                print(values[0], keys, '=\n', values[1])
+                            elif isinstance(values, list):
+                                print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
+                    print('Records:')
+                    print('"<name>" : <structure>')
+                    for rec in interpr.recs:
+                        print(f'"{rec}" : {interpr.recs[rec]}')
+                    print('Procedures:')
+                    print(interpr.procs)
+        elif choice == 3:
+            print('You\'ve chosen other')
+            work1 = True
+            while work1:
+                for msg in menu_other:
+                    print(msg)
+                choice=int(input())
+                if choice == 0:
+                    work1=False
+                elif choice in range(len(other_set)):
+                    interpr=Interpreter()
+                    f=open(other_set[choice])
+                    text=f.read()
+                    f.close()
+                    interpr.interpreter(text)
+                    for sym_table in interpr.sym_table:
+                        for keys, values in sym_table.items():
+                            if isinstance(values, Variable):
+                                if values.type == 'STRING':
+                                    print(values.type, keys, '= \'', values.value, '\'')
+                                else:
+                                    print(values.type, keys, '=', values.value)
+                            elif isinstance(values[1], dict):
+                                print(values[0], keys, '=\n', values[1])
+                            elif isinstance(values, list):
+                                print(values[0][0], ' of ', values[0][1], keys, '=\n', values[1])
+                    print('Records:')
+                    print('"<name>" : <structure>')
+                    for rec in interpr.recs:
+                        print(f'"{rec}" : {interpr.recs[rec]}')
+                    print('Procedures:')
+                    print(interpr.procs)
+        else:
+            print('Incorrect input, try again')
+

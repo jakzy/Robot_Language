@@ -11,16 +11,16 @@ X        XXX XX  X   X  X
 XX    XX XX  X   X XXXX X
 X  XX  X   X X   X    X X
 XX XX  X   XXXXXXX  XXX X
-X     XXXX    X    XX   X
+X     XXXX    X    XX   E
 X        X    XXX    X  X
-XXXXX XXXX   XX    X XX X
+XXXEX XXXX   XX    X XX X
 X     X     XX     X  X X
 X XX XXXXXX XX XXXXXX X X
 X  X      X     XX XX X X
 XXXXXX XXXXX    X   X   X
 X    X     X  XXX  XXXX X
 X    X XXXXX          X X
-XXXX X X  X   X XXX XXXXX
+XXXX X X  X   X EXX XXXXX
 X    X X  X X     XXX   X
 X  X   X  XXXX          X
 X  XXXXX   X    XXX  XX X
@@ -28,4 +28,7 @@ X             XXX XXXX  X
 XXXXX X   X X X X    X XX
 X     X   X X X X  X X  X
 X     X   X X   X  X   XX
-XXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXEXXXXX
+13 3 28 21 MEPHI_BEST
+20 14 11 24 admin123
+24 15 20 16 Automata_Theory

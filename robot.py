@@ -5,8 +5,8 @@ from time import sleep
 
 # as PyCharm doesnt like 'cls', a kludge here, sorry :(
 def clear():
-    sleep(0.2)
-    print('\n'*1)
+    sleep(0.1)
+    print('\n'*10)
 
 
 types = {' ': 'FLOOR',
@@ -182,11 +182,9 @@ class Robot:
             if self.map[self.x + 1][self.y].type == 'WALL':
                 for psw in self.map[self.x + 1][self.y].passwords:
                     pasw.append(psw)
-        #print('LOOK HERE:', pasw)
         return pasw
 
     def voice(self, pasw):
-        print('LOOK AT MY PASSWORD:', pasw)
         if self.map[self.x][self.y - 1].type == 'EXIT':
             if pasw in self.map[self.x][self.y-1].passwords:
                 self.found_exit = True
