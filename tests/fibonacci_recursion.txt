@@ -19,5 +19,7 @@ UNBLOCK
 UNBLOCK
 
 NUMERIC n
-n = 10
+NUMERIC res
+n = 20
+res = n
 fibonacci(n)

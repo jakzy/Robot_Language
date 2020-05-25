@@ -29,11 +29,15 @@ menu_other = ['1. Logic operations',
               '2. Arithmetic operations',
               '3. Array operations',
               '4. Dotted operations (multi typical)',
+              '5. Errors',
+              '5. Syntax Errors',
               '0. Exit']
 other_set = ['', 'tests/logic_operations_test.txt',
              'tests/arithm_operations_test.txt',
              'tests/arrays_test.txt',
-             'tests/dotted_test.txt']
+             'tests/dotted_test.txt',
+             'tests/errors.txt',
+             'tests/synt_errors.txt']
 
 
 class Exit(Exception):
@@ -254,7 +258,7 @@ class Interpreter:
         # statements -> procedure call
         elif node.type == 'procedure_call':
             if not (node.value in self.procs.keys()):
-                sys.stderr.write(f'Line {node.lineno}: Undeclared procedure\n')
+                sys.stderr.write(f'Undeclared procedure\n')
             else:
                 self.run_procedure(node)
 
@@ -262,7 +266,7 @@ class Interpreter:
         elif node.type == 'assignment':
             name = node.value.value
             if name not in self.sym_table[self.scope].keys():
-                sys.stderr.write(f'Line {node.lineno}: Undeclared variable\n')
+                sys.stderr.write(f'Undeclared variable\n')
             else:
                 expression = self.interpreter_node(node.child)
                 if type(self.sym_table[self.scope][name]) == Variable:
@@ -334,7 +338,7 @@ class Interpreter:
             ##########################################
             name = node.child.value
             if name not in self.sym_table[self.scope].keys():
-                sys.stderr.write(f'Line {node.lineno}: Undeclared variable\n')
+                sys.stderr.write(f'Undeclared variable\n')
             else:
                 exp = self.sym_table[self.scope][name]
                 if type(self.sym_table[self.scope][name]) == Variable:
@@ -358,42 +362,42 @@ class Interpreter:
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_up(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVEDOWN':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_down(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVERIGHT':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_right(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'MOVELEFT':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_left(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGUP':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.ping_up(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGDOWN':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.ping_down(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGRIGHT':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.ping_right(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'PINGLEFT':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.ping_left(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VISION':
                 if isinstance(exp, list):
                     if exp[0][1] == 'STRING':
@@ -401,14 +405,14 @@ class Interpreter:
                         for i in range(len(pasws)):
                             exp[1][i].value = pasws[i]
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             elif node.value == 'VOICE':
                 if exp.type == 'STRING':
                     self.robot.voice(exp.value)
                 else:
-                    sys.stderr.write(f'Line {node.lineno}: ILLEGAL COMMAND PARAMETER TYPE')
+                    sys.stderr.write(f'ILLEGAL COMMAND PARAMETER TYPE')
             else:
-                sys.stderr.write(f'Line {node.lineno}: UNEXPECTED ERROR')
+                sys.stderr.write(f'UNEXPECTED ERROR')
 
         # EXPRESSION BLOCK
 

@@ -1,0 +1,6 @@
+NUMERIC 10
+MOVEUP(16 - 7)
+
+NUMERIC a
+NUMERIC b
+a = b + 10 = 17
