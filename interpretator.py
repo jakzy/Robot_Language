@@ -68,22 +68,10 @@ class Variable:
             return f'{self.type},{self.value}'
 
 
-class UserConversion:
-    def __init__(self):
-        self.TO: Dict[str, Node] = dict()
-        self.FROM: Dict[str, Node] = dict()
-
-
 # Conversion of types
 class Conversion:
 
-    def __init__(self):
-        self.user_conversions: Dict[str, UserConversion] = dict()
-
     def converse_(self, var, _type):
-        #if type(var) == np.ndarray:
-        #    print('LATER')
-        #    return Variable()
         if _type == var.type:
             return var
         elif _type == 'LOGIC':
@@ -103,9 +91,6 @@ class Conversion:
                 return self.num_to_string(var)
         elif _type == 'UNDEF':
             return var
-
-    def add_converse(self, _type_from, _type_to, _func):
-        pass
 
     @staticmethod
     def logic_to_num(value):
@@ -356,8 +341,6 @@ class Interpreter:
                                 exp = exp[index.value]
                         index = index.child
             ##########################################
-
-
             if node.value == 'MOVEUP':
                 if exp.type == 'NUMERIC':
                     exp.value = self.robot.move_up(exp.value)
