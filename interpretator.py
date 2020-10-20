@@ -1,6 +1,6 @@
 import sys
 from Parser.parser import Parser
-from typing import List, Dict, Optional
+from typing import Dict
 from syntax_tree import Node
 import robot as rb
 import copy
@@ -703,12 +703,12 @@ class Interpreter:
     # binary slash -- DIVISION or NAND (Sheffer's stroke)
     def bin_slash(self, _val1, _val2):
         no_error = True
-        res_type='UNDEF'
+        res_type = 'UNDEF'
         if type(_val1) == np.ndarray:
             res=copy.deepcopy(_val1)
             if type(_val2) == np.ndarray:
                 for i in range(min(len(_val1), len(_val2))):
-                    res[i]=self.bin_slash(_val1[i], _val2[i])
+                    res[i] = self.bin_slash(_val1[i], _val2[i])
             else:
                 for i in range(len(_val1)):
                     res[i]=self.bin_slash(_val1[i], _val2)
@@ -716,9 +716,9 @@ class Interpreter:
         else:
             if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
                 _val1.type = _val2.type
-            if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
                 _val2.type = _val1.type
-            if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
                 return Variable()
             x1 = _val1.value
             x2 = _val2.value
@@ -782,12 +782,12 @@ class Interpreter:
         else:
             if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
                 _val1.type=_val2.type
-            if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
                 _val2.type=_val1.type
-            if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
                 return Variable()
-            x1=_val1.value
-            x2=_val2.value
+            x1 = _val1.value
+            x2 = _val2.value
             if _val1.type == _val2.type:
                 if _val1.type == "NUMERIC":
                     return Variable('NUMERIC', x1 ** x2)
@@ -849,9 +849,9 @@ class Interpreter:
         else:
             if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
                 _val1.type=_val2.type
-            if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
                 _val2.type=_val1.type
-            if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
                 return Variable()
             x1=_val1.value
             x2=_val2.value
@@ -888,9 +888,9 @@ class Interpreter:
         else:
             if (_val1.type == 'UNDEF') and not (_val2.type == 'UNDEF'):
                 _val1.type=_val2.type
-            if (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and not (_val1.type == 'UNDEF'):
                 _val2.type=_val1.type
-            if (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
+            elif (_val2.type == 'UNDEF') and (_val1.type == 'UNDEF'):
                 return Variable()
             x1=_val1.value
             x2=_val2.value
